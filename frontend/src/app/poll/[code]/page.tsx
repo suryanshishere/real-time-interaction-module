@@ -81,8 +81,7 @@ export default function PollPage() {
 
       <LiveChart
         code={poll.sessionCode}
-        options={poll.options}
-        votes={votes}
+        options={poll.options.map((opt, i) => ({ label: opt, votes: votes[i] }))}
       />
     </div>
   );
