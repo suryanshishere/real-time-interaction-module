@@ -10,7 +10,7 @@ export const metadata = {
   description:
     "PollBuzz lets you create, join, and interact with live polls in real-time. Perfect for teams, events, classrooms, and social interactions.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "./icon.png",
   },
 };
 
@@ -20,7 +20,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { tokenExpiration, tokenExists } = await getServerToken();
-  return (
+   return (
     <html lang="en">
       <body className="relative flex flex-col justify-center items-center min-h-screen gap-10 bg-gray-100 p-4">
         <ClientProviders>

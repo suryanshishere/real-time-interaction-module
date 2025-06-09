@@ -103,16 +103,14 @@ export const sendAuthenticatedResponse = (
   res.cookie("token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "none",
-    expires: tokenExpiration,
-    domain: undefined,
+    // sameSite: "none",
+    expires: tokenExpiration
   });
 
   res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
     secure: isProduction,
-    sameSite: "none",
-    expires: tokenExpiration,
-    domain: undefined,
+    // sameSite: "none",
+    expires: tokenExpiration
   });
 
   res.status(200).json({

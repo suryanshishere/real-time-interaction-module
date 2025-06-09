@@ -47,10 +47,7 @@ const AuthItem: React.FC = () => {
   // Mutation to send auth data (email/password or googleToken)
   const submitMutation = useMutation({
     mutationFn: async (data: AuthMutationInput) => {
-      const response = await axiosInstance.post(
-        `/auth`,
-        JSON.stringify(data)
-      );
+      const response = await axiosInstance.post(`/auth`, data);
       return response.data;
     },
     onSuccess: async ({ isEmailVerified, deactivated_at, message }) => {
@@ -115,12 +112,6 @@ const AuthItem: React.FC = () => {
             />
           </fieldset>
           <div className="flex items-center gap-2 overflow-hidden w-full">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleFailure}
-              shape="circle"
-              text="continue_with"
-            />
             <button
               aria-disabled={submitMutation.isPending ? "true" : "false"}
               disabled={submitMutation.isPending}
@@ -129,6 +120,12 @@ const AuthItem: React.FC = () => {
             >
               {submitMutation.isPending ? "Authenticating..." : "Authenticate"}
             </button>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleFailure}
+              shape="circle"
+              text="continue_with"
+            />
           </div>
         </form>
       </section>
