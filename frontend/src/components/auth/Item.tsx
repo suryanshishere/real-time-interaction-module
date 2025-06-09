@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -13,6 +15,7 @@ import axiosInstance from "@shared/utils/axios-instance";
 import { Input } from "@shared/ui/Input";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import useUserStore from "@shared/hooks/useUserStore";
+import { useRouter } from "next/navigation";
 
 // Validation schema using Yup for the email/password form
 const validationSchema = yup.object().shape({
@@ -33,6 +36,7 @@ interface IAuthForm {
 type AuthMutationInput = IAuthForm | { google_token: string };
 
 const AuthItem: React.FC = () => {
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const {
     register,
@@ -47,10 +51,7 @@ const AuthItem: React.FC = () => {
   // Mutation to send auth data (email/password or googleToken)
   const submitMutation = useMutation({
     mutationFn: async (data: AuthMutationInput) => {
-      const response = await axiosInstance.post(
-        `/auth`,
-        JSON.stringify(data)
-      );
+      const response = await axiosInstance.post(`/auth`, JSON.stringify(data));
       return response.data;
     },
     onSuccess: async ({ isEmailVerified, deactivated_at, message }) => {
@@ -58,7 +59,7 @@ const AuthItem: React.FC = () => {
       login({ is_email_verified: isEmailVerified, deactivated_at });
 
       setTimeout(() => {
-        window.location.reload();
+        router.refresh(); // or router.push(router.asPath)
       }, 150);
     },
     onError: (error: any) => {
