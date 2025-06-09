@@ -11,7 +11,6 @@ export async function POST() {
     expires: new Date(0),
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? "pollbuzz.vercel.app" : undefined,
   });
 
   response.cookies.set({
@@ -22,7 +21,6 @@ export async function POST() {
     expires: new Date(0),
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? "pollbuzz.vercel.app" : undefined,
   });
 
   return response;

@@ -105,14 +105,12 @@ export const sendAuthenticatedResponse = (
     secure: isProduction,
     sameSite: isProduction ? "lax" : "lax",
     expires: tokenExpiration,
-    domain: isProduction ? "pollbuzz.vercel.app" : undefined,
   });
 
   res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
     secure: isProduction,
     sameSite: isProduction ? "lax" : "lax",
     expires: tokenExpiration,
-    domain: isProduction ? "pollbuzz.vercel.app" : undefined,
   });
 
   res.status(200).json({
