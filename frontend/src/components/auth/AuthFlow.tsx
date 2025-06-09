@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import ForgotPassword from "./ForgotPassword";
 import Item from "./Item";
 import EmailVerification from "./EmailVerification";
-import Link from "next/link";
 import useUserStore from "@shared/hooks/useUserStore";
 
 export interface AuthProps {

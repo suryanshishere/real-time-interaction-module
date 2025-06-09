@@ -7,6 +7,8 @@ import Timer from "@components/Timer";
 import { Input, TextArea } from "@shared/ui/Input";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import axiosInstance from "@shared/utils/axios-instance";
 import { AppDispatch } from "@shared/store";
 import {
@@ -27,8 +29,10 @@ export default function AdminPanel() {
   const [questionError, setQuestionError] = useState("");
   const [optionsError, setOptionsError] = useState<string[]>(["", ""]);
   const [msg, setMsg] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState("");
 
-  // Keep optionsError in sync when options length changes
+  const MAX_OPTIONS = 7;
+
   useEffect(() => {
     setOptionsError((prev) => {
       const newArr = [...prev];
@@ -46,12 +50,14 @@ export default function AdminPanel() {
       setQuestionError("Question is required.");
       valid = false;
     }
+
     options.forEach((opt, i) => {
       if (!opt.trim()) {
         errs[i] = "Option is required.";
         valid = false;
       }
     });
+
     setOptionsError(errs);
     return valid;
   };
@@ -68,7 +74,8 @@ export default function AdminPanel() {
     },
     onError: (err) => {
       const msg =
-        err.response?.error || "Failed to create poll. Try again.";
+        err.response?.data.msg ||
+        "Unauthenticate or failed to create poll. Try again.";
       dispatch(triggerErrorMsg(msg));
       setMsg(msg);
     },
@@ -82,13 +89,18 @@ export default function AdminPanel() {
     });
   };
 
-  const addOption = () => setOptions((prev) => [...prev, ""]);
+  const addOption = () => {
+    if (options.length >= MAX_OPTIONS) return;
+    setOptions((prev) => [...prev, ""]);
+  };
+
   const removeOption = (i: number) =>
     setOptions((prev) => prev.filter((_, idx) => idx !== i));
 
   const onOptionChange = (val: string, i: number) => {
     setOptions((prev) => prev.map((o, idx) => (idx === i ? val : o)));
   };
+
   const onOptionBlur = (i: number) => {
     setOptionsError((prev) =>
       prev.map((e, idx) =>
@@ -101,12 +113,21 @@ export default function AdminPanel() {
     setQuestion(val);
     if (questionError && val.trim()) setQuestionError("");
   };
+
   const onQuestionBlur = () => {
     if (!question.trim()) setQuestionError("Question is required.");
   };
 
   const isCreating = createMutation.isPending;
   const isDisabled = !question.trim() || options.some((o) => !o.trim());
+
+  const handleCopy = (code: string) => {
+    const url = `${window.location.origin}/poll/${code}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopySuccess("Copied to clipboard.");
+      setTimeout(() => setCopySuccess(""), 2000);
+    });
+  };
 
   return (
     <div className="w-[30rem] my-8 mx-2 space-y-6 p-4 shadow rounded-xl">
@@ -156,7 +177,12 @@ export default function AdminPanel() {
         <button
           type="button"
           onClick={addOption}
-          className="flex items-center gap-1 hover:bg-gray-200 p-1 rounded-full"
+          disabled={options.length >= MAX_OPTIONS}
+          className={`flex items-center gap-1 hover:bg-gray-200 p-1 rounded-full ${
+            options.length >= MAX_OPTIONS
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
         >
           <ControlPointIcon /> Add Option
         </button>
@@ -171,15 +197,42 @@ export default function AdminPanel() {
         </button>
       </div>
 
+      {options.length >= MAX_OPTIONS && (
+        <p className="text-yellow-600 text-sm">
+          Maximum of {MAX_OPTIONS} options allowed.
+        </p>
+      )}
+
       {createMutation.isSuccess && createMutation.data && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 w-full sm:w-[30rem]">
           <div className="text-green-700 font-semibold">
-            ✅ Poll Created!
+            Poll Created Successfully.
             <br />
             Session Code:{" "}
             <span className="font-mono text-lg">
               {createMutation.data.sessionCode}
             </span>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={() => handleCopy(createMutation.data.sessionCode)}
+                className="text-sm text-blue-700 hover:underline flex items-center gap-1"
+              >
+                <ContentCopyIcon fontSize="small" />
+                Copy Link
+              </button>
+              <a
+                href={`/poll/${createMutation.data.sessionCode}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-700 hover:underline flex items-center gap-1"
+              >
+                <OpenInNewIcon fontSize="small" />
+                Open Poll
+              </a>
+            </div>
+            {copySuccess && (
+              <p className="text-green-600 text-xs mt-1">{copySuccess}</p>
+            )}
           </div>
           <LiveChart
             code={createMutation.data.sessionCode}

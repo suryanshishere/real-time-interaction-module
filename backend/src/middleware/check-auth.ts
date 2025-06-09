@@ -8,7 +8,7 @@ import { getTokenFromRequest } from "@utils/verify-token";
 export const excludedPaths: (string | RegExp)[] = [
   "/",
   "/auth",
-  "/auth/reset-password",
+  "/auth/reset-password", 
   /^\/auth\/reset-password\/[^/]+$/, //TODO: regex can be used to add check for mongodb id
 ];
 
@@ -17,6 +17,7 @@ export const optionalPaths: (string | RegExp)[] = [
   "/",
   "/auth/send-password-reset-link",
   "/auth/send-verification-otp",
+  /^\/poll\/[^/]+$/,   // <-- allow optional auth for poll/:code route here too if needed
 ];
 
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {

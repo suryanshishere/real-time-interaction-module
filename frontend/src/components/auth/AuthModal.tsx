@@ -6,6 +6,7 @@ import Modal from "@shared/ui/Modal";
 import AuthFlow from "./AuthFlow";
 import useUserStore from "@shared/hooks/useUserStore";
 import { useEffect } from "react";
+import UserCreatedPolls from "@components/UserCreatedPolls";
 
 interface AuthModalProps {
   tokenExists: boolean;
@@ -35,13 +36,8 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
             </p>
           </>
         ) : (
-          <div className="flex justify-center items-center gap-3 w-[20rem] flex-wrap text-sm">
-            {/* <Link
-              href="user/change-password"
-              className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
-            >
-              Change Password
-            </Link> */}
+          <div className="flex flex-col justify-center items-center gap-5 w-full sm:w-[30rem] flex-wrap text-sm">
+            <UserCreatedPolls />
             <button
               onClick={logout}
               className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"

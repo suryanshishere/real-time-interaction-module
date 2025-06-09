@@ -7,7 +7,10 @@ import LiveChart from "@components/LiveChart";
 import axiosInstance from "@shared/utils/axios-instance";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@shared/store";
-import { triggerErrorMsg, triggerSuccessMsg } from "@shared/store/thunks/response-thunk";
+import {
+  triggerErrorMsg,
+  triggerSuccessMsg,
+} from "@shared/store/thunks/response-thunk";
 
 let socket: Socket;
 
@@ -19,52 +22,52 @@ export default function PollPage() {
     options: string[];
     votes: number[];
   } | null>(null);
+
   const [votes, setVotes] = useState<number[] | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const [selectedVote, setSelectedVote] = useState<number | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const errorMsg = useSelector((state: RootState) => state.response.onErrorMsg);
+  const successMsg = useSelector((state: RootState) => state.response.onSuccessMsg);
 
-  // 1. Fetch poll data
+  // Fetch poll data on mount
   useEffect(() => {
     if (!code) return;
 
     axiosInstance
-      .get(`/poll/${code}`)
+      .get(`/poll/${code}`, { withCredentials: true })
       .then((res) => {
         setPoll(res.data);
         setVotes(res.data.votes);
       })
       .catch(() => {
-        dispatch(triggerErrorMsg("Poll not found."));
+        setHasError(true);
+        dispatch(triggerErrorMsg("Poll not found or unauthorized."));
       });
   }, [code, dispatch]);
 
-  // 2. Setup Socket.IO
+  // Setup socket connection
   useEffect(() => {
     if (!poll) return;
 
-    socket = io(
-      process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000",
-      {
-        withCredentials: true,
-        transports: ["websocket"],
-      }
-    );
+    socket = io(process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000", {
+      withCredentials: true,
+      transports: ["websocket"],
+    });
 
     socket.emit("join", poll.sessionCode);
 
-    // Handle incoming vote updates
     socket.on("voteUpdate", (newVotes: number[]) => {
       setVotes(newVotes);
     });
 
-    // Handle vote errors
     socket.on("voteError", (msg: string) => {
-      dispatch(triggerErrorMsg(msg ));
+      dispatch(triggerErrorMsg(msg));
     });
 
     socket.on("voteSuccess", (msg: string) => {
-      dispatch(triggerSuccessMsg(msg ));
+      dispatch(triggerSuccessMsg(msg));
     });
 
     return () => {
@@ -72,26 +75,54 @@ export default function PollPage() {
     };
   }, [poll, dispatch]);
 
-  // 3. Emit vote
-  const castVote = (idx: number) => {
+  // Load selected vote from localStorage
+  useEffect(() => {
     if (!poll) return;
+    const storedVote = localStorage.getItem(`voted_${poll.sessionCode}`);
+    if (storedVote !== null) {
+      setSelectedVote(Number(storedVote));
+    }
+  }, [poll]);
+
+  // Cast vote with optimistic update
+  const castVote = (idx: number) => {
+    if (!poll || !votes || selectedVote !== null) return;
+
+    setSelectedVote(idx);
+    localStorage.setItem(`voted_${poll.sessionCode}`, idx.toString());
+
+    setVotes((prevVotes) => {
+      if (!prevVotes) return prevVotes;
+      const updatedVotes = [...prevVotes];
+      updatedVotes[idx] += 1;
+      return updatedVotes;
+    });
+
     socket.emit("castVote", {
       code: poll.sessionCode,
       optionIndex: idx,
     });
   };
 
-  // 4. Render UI
+  if (hasError) {
+    return (
+      <div className="text-center mt-8 text-red-500">
+        {errorMsg || "Something went wrong loading the poll."}
+      </div>
+    );
+  }
+
   if (!poll || votes === null) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return <div className="text-center mt-8">Loading poll...</div>;
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-8 space-y-6">
+    <div className="w-full sm:w-[30rem] mx-auto my-8 flex flex-col gap-6">
       <h2 className="text-2xl font-semibold text-center">{poll.question}</h2>
 
-      {errorMsg && (
-        <div className="text-center text-red-500 mt-2">{errorMsg}</div>
+      {errorMsg && <div className="text-center text-red-500 mt-2">{errorMsg}</div>}
+      {successMsg && (
+        <div className="text-center text-green-600 mt-2">{successMsg}</div>
       )}
 
       <div className="grid grid-cols-1 gap-2">
@@ -99,9 +130,17 @@ export default function PollPage() {
           <button
             key={i}
             onClick={() => castVote(i)}
-            className="btn py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            disabled={selectedVote !== null}
+            className={`custom_go p-2 rounded text-left ${
+              selectedVote === i
+                ? "bg-green-100 border border-green-500 text-green-800 font-medium"
+                : "bg-white border border-gray-300"
+            }`}
           >
             {opt}
+            {selectedVote === i && (
+              <span className="ml-2 text-green-700 font-medium">(You voted this)</span>
+            )}
           </button>
         ))}
       </div>

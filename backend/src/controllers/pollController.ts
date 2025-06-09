@@ -80,7 +80,6 @@ export const createPoll = async (
 export const getPoll = async (req: Request, res: Response): Promise<void> => {
   const { code } = req.params;
 
-  // 1️⃣ Validate `code`
   if (!code || typeof code !== "string" || code.trim() === "") {
     res
       .status(400)
@@ -89,7 +88,6 @@ export const getPoll = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // 2️⃣ Fetch poll, plus creator’s basic info if you need it
     const poll = await Poll.findOne({ sessionCode: code.trim() })
       .populate("createdBy", "name email")
       .lean(); // lean() gives you a plain JS object
@@ -99,10 +97,8 @@ export const getPoll = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // 3️⃣ Optionally strip out any internal-only fields:
     const { _id, __v, ...publicPoll } = poll as any;
 
-    // 4️⃣ Return
     res.status(200).json(publicPoll);
   } catch (err: any) {
     console.error("getPoll error:", err);
@@ -167,4 +163,3 @@ export const vote = async (
     socket.emit("voteError", "Something went wrong. Please try again later.");
   }
 };
-

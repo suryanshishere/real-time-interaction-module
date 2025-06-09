@@ -12,6 +12,7 @@ import initSocket from "./services/socketService";
 import checkAuth from "./middleware/check-auth";
 import HttpError from "./utils/http-errors";
 import bodyParser from "body-parser";
+import { getUserCreatedPolls } from "@controllers/userController";
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,7 @@ app.use(checkAuth);
 // --- Routes ---
 app.use("/auth", authRoutes);
 app.use("/poll", pollRoutes);
+app.get("/my-polls", getUserCreatedPolls);
 
 // --- Logout route ---
 app.post("/logout", (req, res) => {
