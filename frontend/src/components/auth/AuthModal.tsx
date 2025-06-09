@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Modal from "@shared/ui/Modal";
 import AuthFlow from "./AuthFlow";
 import useUserStore from "@shared/hooks/useUserStore";
@@ -22,7 +21,7 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
 
   return (
     <>
-      <div className="absolute sm:static bottom-20 flex flex-col items-center gap-2 justify-center">
+      <div className="flex flex-col items-center gap-2 justify-center my-6 w-full">
         {!tokenExists ? (
           <>
             <button
@@ -36,16 +35,17 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
             </p>
           </>
         ) : (
-          <div className="flex flex-col justify-center items-center gap-5 w-full sm:w-[30rem] flex-wrap text-sm">
+          <div className="flex flex-col justify-center gap-5 w-full sm:w-[30rem] flex-wrap text-sm">
             <UserCreatedPolls />
             <button
               onClick={logout}
-              className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
+              className="flex gap-1 text-center self-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
             >
               Logout
             </button>
           </div>
         )}
+        
       </div>
 
       <Modal

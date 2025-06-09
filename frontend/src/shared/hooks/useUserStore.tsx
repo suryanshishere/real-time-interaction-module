@@ -29,6 +29,8 @@ const defaultState: IUserState = {
 };
 
 // --- Store ---
+const isClient = typeof window !== "undefined";
+
 const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
@@ -76,7 +78,8 @@ const useUserStore = create<UserStore>()(
     }),
     {
       name: "app_user_state",
-      storage: createJSONStorage(() => localStorage),
+      storage: isClient ? createJSONStorage(() => localStorage) : undefined,
+      skipHydration: !isClient,
     }
   )
 );

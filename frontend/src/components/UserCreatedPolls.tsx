@@ -37,7 +37,7 @@ export default function UserCreatedPolls() {
   if (polls.length === 0) return <div>You haven't created any polls yet.</div>;
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-10">
       <h3 className="text-base text-center font-semibold mb-4">Your Created Polls History</h3>
       <ul className="space-y-4">
         {polls.map((poll) => {

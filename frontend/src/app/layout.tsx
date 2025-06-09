@@ -16,6 +16,7 @@ export default async function RootLayout({
       <body className="relative flex flex-col justify-center items-center min-h-screen gap-10 bg-gray-100 p-4">
         <ClientProviders>
           <Response />
+          {/* TODO deactivation or token expiry checker */}
           <AuthChecker tokenExpiration={tokenExpiration} /> 
             {children} 
           <AuthModal tokenExists={tokenExists} />

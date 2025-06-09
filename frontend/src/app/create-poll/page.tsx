@@ -130,7 +130,7 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="w-[30rem] my-8 mx-2 space-y-6 p-4 shadow rounded-xl">
+    <div className="w-full sm:w-[30rem] mx-2 space-y-6 p-4 shadow rounded-xl">
       <h1 className="text-2xl font-bold">Create a Poll</h1>
 
       <TextArea
