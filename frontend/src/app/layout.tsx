@@ -20,7 +20,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { tokenExpiration, tokenExists } = await getServerToken();
-  console.log(tokenExists, tokenExpiration)
   return (
     <html lang="en">
       <body className="relative flex flex-col justify-center items-center min-h-screen gap-10 bg-gray-100 p-4">

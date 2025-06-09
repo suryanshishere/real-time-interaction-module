@@ -103,13 +103,13 @@ export const sendAuthenticatedResponse = (
   res.cookie("token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "lax" : "lax",
+   sameSite: isProduction ? "none" : "lax",
     expires: tokenExpiration,
   });
 
   res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
     secure: isProduction,
-    sameSite: isProduction ? "lax" : "lax",
+   sameSite: isProduction ? "none" : "lax",
     expires: tokenExpiration,
   });
 
