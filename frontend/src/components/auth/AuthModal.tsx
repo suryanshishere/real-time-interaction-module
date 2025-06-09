@@ -5,14 +5,19 @@ import Link from "next/link";
 import Modal from "@shared/ui/Modal";
 import AuthFlow from "./AuthFlow";
 import useUserStore from "@shared/hooks/useUserStore";
+import { useEffect } from "react";
 
 interface AuthModalProps {
   tokenExists: boolean;
 }
 
 export default function AuthModal({ tokenExists }: AuthModalProps) {
-  const [open, setOpen] = useState(false);
-  const logout = useUserStore((state) => state.logout);
+  const { is_email_verified, logout } = useUserStore();
+  const [open, setOpen] = useState(tokenExists && !is_email_verified);
+
+  useEffect(() => {
+    setOpen(tokenExists && !is_email_verified);
+  }, [tokenExists, is_email_verified]);
 
   return (
     <>
@@ -53,6 +58,7 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}
         confirmButton={false}
+        tokenExists={tokenExists}
       >
         <AuthFlow tokenExists={tokenExists} />
       </Modal>

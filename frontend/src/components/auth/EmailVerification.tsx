@@ -34,7 +34,8 @@ type OTPFormInputs = {
 };
 
 const EmailVerification: React.FC = () => {
-  const { is_otp_sent, updateUserData, handleAuthClick } = useUserStore();
+  const { is_otp_sent, updateUserData, handleAuthClick, logout } =
+    useUserStore();
   const [isSendOnce, setIsSendOnce] = useState<boolean>(is_otp_sent);
   const dispatch = useDispatch<AppDispatch>();
   const [resendTimer, setResendTimer] = useState<number>(0);
@@ -67,9 +68,7 @@ const EmailVerification: React.FC = () => {
   // Mutation for sending OTP email
   const sendOtpMutation = useMutation({
     mutationFn: async () => {
-      const response = await axiosInstance.post(
-        `user/auth/send-verification-otp`
-      );
+      const response = await axiosInstance.post(`/auth/send-verification-otp`);
       return response.data;
     },
     onSuccess: (data) => {
@@ -91,7 +90,7 @@ const EmailVerification: React.FC = () => {
   // Mutation for verifying OTP
   const verifyOtpMutation = useMutation({
     mutationFn: async (otp: number) => {
-      const response = await axiosInstance.post(`user/auth/verify-email`, {
+      const response = await axiosInstance.post(`/auth/verify-email`, {
         otp,
       });
       return response.data;
@@ -129,15 +128,23 @@ const EmailVerification: React.FC = () => {
             : "Generate an OTP to verify your email."}
         </div>
         {!isSendOnce ? (
-          <button
-            aria-disabled={sendOtpMutation.isPending ? "true" : "false"}
-            onClick={handleOtpEmail}
-            disabled={sendOtpMutation.isPending}
-            type="button"
-            className={`auth_button self-center`}
-          >
-            {sendOtpMutation.isPending ? "Generating..." : "Generate OTP"}
-          </button>
+          <div className="flex gap-4 justify-center items-center">
+            <button
+              onClick={logout}
+              className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
+            >
+              Logout
+            </button>
+            <button
+              aria-disabled={sendOtpMutation.isPending ? "true" : "false"}
+              onClick={handleOtpEmail}
+              disabled={sendOtpMutation.isPending}
+              type="button"
+              className="custom_go"
+            >
+              {sendOtpMutation.isPending ? "Generating..." : "Generate OTP"}
+            </button>
+          </div>
         ) : (
           <fieldset className="border-0 p-0 m-0 flex flex-col mobile:flex-row mobile:items-center gap-3 justify-between">
             <legend className="sr-only">OTP Verification Form</legend>
@@ -146,14 +153,23 @@ const EmailVerification: React.FC = () => {
               error={!!errors.email_verification_otp}
               helperText={errors.email_verification_otp?.message}
               type="number"
-              className="py-2 text-md rounded placeholder:text-sm min-w-[6rem] flex-1 outline-custom_gray"
               placeholder="Enter OTP"
               outerClassProp="flex-1"
             />
             <div className="self-end mobile:self-center flex gap-3">
               <button
+                onClick={logout}
+                className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
+              >
+                Logout
+              </button>
+              <button
                 aria-disabled={sendOtpMutation.isPending ? "true" : "false"}
-                className="auth_button"
+                className={`custom_go ${
+                  resendTimer > 0 || sendOtpMutation.isPending
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 type="button"
                 onClick={handleOtpEmail}
                 disabled={resendTimer > 0 || sendOtpMutation.isPending}
@@ -166,7 +182,7 @@ const EmailVerification: React.FC = () => {
               </button>
               <button
                 aria-disabled={verifyOtpMutation.isPending ? "true" : "false"}
-                className="auth_button mobile:min-w-[8rem]"
+                className="custom_go"
                 type="submit"
                 disabled={verifyOtpMutation.isPending}
               >

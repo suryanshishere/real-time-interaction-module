@@ -9,12 +9,10 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "@shared/store";
 import {
   triggerErrorMsg,
-  triggerSuccessMsg,
 } from "@shared/store/thunks/response-thunk";
 import axiosInstance from "@shared/utils/axios-instance";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Input } from "@shared/ui/Input";
-import PageHeader from "@shared/ui/PageHeader";
 import { useRouter, usePathname } from "next/navigation";
 
 const validationSchema = yup.object().shape({
@@ -28,7 +26,6 @@ interface IForgotPassword {
 const ForgotPassword: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const pathname = usePathname();
 
   const {
     register,

@@ -18,7 +18,7 @@ export interface AuthProps {
 
 const AuthFlow: React.FC<AuthProps> = ({ tokenExists = false }) => {
   const [authFlow, setAuthFlow] = useState<string>("AUTH");
-  const { is_email_verified, logout, handleAuthClick } = useUserStore();
+  const { is_email_verified } = useUserStore();
 
   const renderButtons = () => (
     <nav
@@ -42,11 +42,6 @@ const AuthFlow: React.FC<AuthProps> = ({ tokenExists = false }) => {
           Back to Login / Signup
         </button>
       )}
-
- 
-   
-
-     
     </nav>
   );
 
@@ -76,10 +71,7 @@ const AuthFlow: React.FC<AuthProps> = ({ tokenExists = false }) => {
   };
 
   return (
-    <main
-      role="main" 
-      className="w-full flex flex-col gap-4"
-    >
+    <main role="main" className="w-full flex flex-col gap-4">
       {renderComponents()}
       {renderButtons()}
     </main>
