@@ -25,7 +25,7 @@ const Response = () => {
 
   return (
     <aside
-      className="fixed top-2 right-1 text-sm text-custom_white font-bold flex flex-col justify-center gap-1 items-end w-full z-50"
+      className="fixed top-4 right-4 text-sm text-custom_white font-bold flex flex-col justify-center gap-1 items-end w-full z-50"
       aria-live="polite"
       aria-atomic="true"
     >

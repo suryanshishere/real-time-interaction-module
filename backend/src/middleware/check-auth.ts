@@ -2,6 +2,7 @@ import HttpError from "@utils/http-errors";
 import { Response, NextFunction, Request } from "express";
 import { expressjwt } from "express-jwt";
 import { isRegExp } from "lodash";
+import { getTokenFromRequest } from "@utils/verify-token";
 
 // Define paths that do not require authorization (excluded routes)
 export const excludedPaths: (string | RegExp)[] = [
@@ -22,14 +23,11 @@ const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   const checkAuth = expressjwt({
     secret: process.env.JWT_KEY ?? "",
     algorithms: ["HS256"],
-    requestProperty: "userData",
+    requestProperty: "userData", // attaches `req.userData`
     credentialsRequired: true,
     getToken: (req) => {
-      // Get token from cookie named 'token'
-      if (req.cookies && req.cookies.token) {
-        return req.cookies.token;
-      }
-      return null;
+      const token = getTokenFromRequest(req);
+      return token === null ? undefined : token;
     },
   }).unless({
     path: excludedPaths,

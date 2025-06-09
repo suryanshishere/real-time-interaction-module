@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import LiveChart from "@components/LiveChart";
+import axiosInstance from "@shared/utils/axios-instance";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@shared/store";
+import { triggerErrorMsg, triggerSuccessMsg } from "@shared/store/thunks/response-thunk";
 
 let socket: Socket;
 
@@ -16,49 +19,69 @@ export default function PollPage() {
     options: string[];
     votes: number[];
   } | null>(null);
-
-  const [error, setError] = useState("");
   const [votes, setVotes] = useState<number[] | null>(null);
 
-  // Fetch poll data from backend
+  const dispatch = useDispatch<AppDispatch>();
+  const errorMsg = useSelector((state: RootState) => state.response.onErrorMsg);
+
+  // 1. Fetch poll data
   useEffect(() => {
     if (!code) return;
 
-    axios
-      .get(`http://localhost:4000/api/poll/${code}`)
+    axiosInstance
+      .get(`/poll/${code}`)
       .then((res) => {
         setPoll(res.data);
-        setVotes(res.data.votes); // initial votes
+        setVotes(res.data.votes);
       })
-      .catch(() => setError("Poll not found."));
-  }, [code]);
+      .catch(() => {
+        dispatch(triggerErrorMsg("Poll not found."));
+      });
+  }, [code, dispatch]);
 
-  // Setup socket connection and live updates
+  // 2. Setup Socket.IO
   useEffect(() => {
     if (!poll) return;
 
-    socket = io("http://localhost:4000");
+    socket = io(
+      process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000",
+      {
+        withCredentials: true,
+        transports: ["websocket"],
+      }
+    );
 
     socket.emit("join", poll.sessionCode);
 
+    // Handle incoming vote updates
     socket.on("voteUpdate", (newVotes: number[]) => {
       setVotes(newVotes);
+    });
+
+    // Handle vote errors
+    socket.on("voteError", (msg: string) => {
+      dispatch(triggerErrorMsg(msg ));
+    });
+
+    socket.on("voteSuccess", (msg: string) => {
+      dispatch(triggerSuccessMsg(msg ));
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [poll]);
+  }, [poll, dispatch]);
 
+  // 3. Emit vote
   const castVote = (idx: number) => {
     if (!poll) return;
-    socket.emit("castVote", { code: poll.sessionCode, optionIndex: idx });
+    socket.emit("castVote", {
+      code: poll.sessionCode,
+      optionIndex: idx,
+    });
   };
 
-  if (error) {
-    return <div className="text-center mt-8 text-red-500">{error}</div>;
-  }
-
+  // 4. Render UI
   if (!poll || votes === null) {
     return <div className="text-center mt-8">Loading...</div>;
   }
@@ -66,6 +89,10 @@ export default function PollPage() {
   return (
     <div className="max-w-2xl mx-auto my-8 space-y-6">
       <h2 className="text-2xl font-semibold text-center">{poll.question}</h2>
+
+      {errorMsg && (
+        <div className="text-center text-red-500 mt-2">{errorMsg}</div>
+      )}
 
       <div className="grid grid-cols-1 gap-2">
         {poll.options.map((opt, i) => (
@@ -81,7 +108,10 @@ export default function PollPage() {
 
       <LiveChart
         code={poll.sessionCode}
-        options={poll.options.map((opt, i) => ({ label: opt, votes: votes[i] }))}
+        options={poll.options.map((opt, i) => ({
+          label: opt,
+          votes: votes[i],
+        }))}
       />
     </div>
   );

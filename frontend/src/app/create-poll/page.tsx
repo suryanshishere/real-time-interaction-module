@@ -68,7 +68,7 @@ export default function AdminPanel() {
     },
     onError: (err) => {
       const msg =
-        err.response?.data?.message || "Failed to create poll. Try again.";
+        err.response?.error || "Failed to create poll. Try again.";
       dispatch(triggerErrorMsg(msg));
       setMsg(msg);
     },

@@ -1,9 +1,9 @@
 import { AppDispatch } from "..";
-import { setErrorMsg, clearErrorMsg, setSuccessMsg, clearSuccessMsg } from "../responseSlice";
+import { triggerErrorMsg, clearErrorMsg, setSuccessMsg, clearSuccessMsg } from "../responseSlice";
 
 export const triggerErrorMsg = (msg: string, timeoutInSeconds: number = 3) => 
   (dispatch: AppDispatch) => {
-    dispatch(setErrorMsg({ msg }));
+    dispatch(triggerErrorMsg({ msg }));
     setTimeout(() => {
       dispatch(clearErrorMsg());
     }, timeoutInSeconds * 1000);

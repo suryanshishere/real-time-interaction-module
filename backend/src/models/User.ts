@@ -26,6 +26,11 @@ export interface IUser extends Document {
   deactivated_at?: Date; // Field to mark if user is deactivated
 
   expireAt?: Date;
+
+  pollsCreated: {
+    poll: mongoose.Types.ObjectId;
+    createdAt: Date;
+  }[];
 }
 
 const userSchema: Schema = new Schema<IUser>(
@@ -60,6 +65,13 @@ const userSchema: Schema = new Schema<IUser>(
 
     // Field to auto-delete unverified users
     expireAt: { type: Date },
+
+    pollsCreated: [
+      {
+        poll: { type: Schema.Types.ObjectId, ref: "Poll", required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

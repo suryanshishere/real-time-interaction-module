@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AppDispatch } from ".";
 
 interface ResponseState {
   onErrorMsg: string | null;
@@ -16,13 +17,13 @@ const responseSlice = createSlice({
   name: "response",
   initialState,
   reducers: {
-    setErrorMsg(state, action: PayloadAction<{ msg: string; timeout?: number }>) {
+    setErrorMsg(state, action: PayloadAction<{ msg: string }>) {
       state.onErrorMsg = action.payload.msg;
     },
     clearErrorMsg(state) {
       state.onErrorMsg = null;
     },
-    setSuccessMsg(state, action: PayloadAction<{ msg: string; timeout?: number }>) {
+    setSuccessMsg(state, action: PayloadAction<{ msg: string }>) {
       state.onSuccessMsg = action.payload.msg;
     },
     clearSuccessMsg(state) {

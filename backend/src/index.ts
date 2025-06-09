@@ -77,9 +77,12 @@ app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*",
+    origin: [ FRONTEND_URL, "https://pollbuzz.vercel.app", "http://localhost:3000" ],
+    methods: ["GET", "POST"],
+    credentials: true
   },
 });
+
 initSocket(io);
 
 // --- Connect MongoDB and Start Server ---

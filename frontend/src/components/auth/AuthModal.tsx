@@ -36,12 +36,12 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
           </>
         ) : (
           <div className="flex justify-center items-center gap-3 w-[20rem] flex-wrap text-sm">
-            <Link
+            {/* <Link
               href="user/change-password"
               className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
             >
               Change Password
-            </Link>
+            </Link> */}
             <button
               onClick={logout}
               className="flex gap-1 text-center items-center hover:bg-gray-200 mt-1 py-1 px-6 rounded-full shadow"
