@@ -100,18 +100,30 @@ export const sendAuthenticatedResponse = (
 
   const isProduction = process.env.NODE_ENV === "production";
 
-  res.cookie("token", token, {
+function getCookieOptions(expires: Date) {
+  return {
     httpOnly: true,
-    secure: isProduction,
-   sameSite: isProduction ? "none" : "lax",
-    expires: tokenExpiration,
-  });
+    secure: isProduction,              // must be true for SameSite=None in prod
+    sameSite: isProduction ? "none" as "none" : "lax" as "lax",  // none for cross-site cookies in prod
+    expires,
+    path: "/",
+    // domain: ".yourdomain.com", // uncomment if your frontend and backend share a common root domain
+  };
+}
 
-  res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
-    secure: isProduction,
-   sameSite: isProduction ? "none" : "lax",
-    expires: tokenExpiration,
-  });
+// Set token cookie (HttpOnly, Secure, cross-site)
+res.cookie("token", token, getCookieOptions(tokenExpiration));
+
+// Set expiration cookie (if you want it readable by frontend JS, set httpOnly false)
+res.cookie(
+  "tokenExpiration",
+  tokenExpiration.toISOString(),
+  {
+    ...getCookieOptions(tokenExpiration),
+    httpOnly: false,  // frontend JS can read if needed
+  }
+);
+
 
   res.status(200).json({
     isEmailVerified,
