@@ -5,6 +5,15 @@ import AuthChecker from "@components/auth/AuthChecker";
 import Response from "@shared/utils/Response";
 import AuthModal from "@components/auth/AuthModal";
 
+export const metadata = {
+  title: "pollbuzz",
+  description:
+    "PollBuzz lets you create, join, and interact with live polls in real-time. Perfect for teams, events, classrooms, and social interactions.",
+  icons: {
+    icon: "/favicon.ico",
+  },
+};
+
 export default async function RootLayout({
   children,
 }: {
@@ -17,9 +26,18 @@ export default async function RootLayout({
         <ClientProviders>
           <Response />
           {/* TODO deactivation or token expiry checker */}
-          <AuthChecker tokenExpiration={tokenExpiration} /> 
-            {children} 
+          <AuthChecker tokenExpiration={tokenExpiration} />
+          {children}
           <AuthModal tokenExists={tokenExists} />
+          {/* Test credentials for development/testing purposes */}
+          <p className="text-xs text-gray-500">
+            For testing: <br />
+            <span className="font-mono">
+              email: heresuryanshsingh@gmail.com
+            </span>
+            <br />
+            <span className="font-mono">password: test123</span>
+          </p>
         </ClientProviders>
       </body>
     </html>
