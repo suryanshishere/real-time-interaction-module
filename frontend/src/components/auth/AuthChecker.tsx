@@ -2,10 +2,10 @@
 
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/shared/store";
-import Modal from "@/shared/ui/Modal";
-import { closeAllModal, toggleModalState } from "@/shared/store/modalSlice";
-import useUserStore from "@/shared/hooks/useUserStore";
+import { RootState } from "@shared/store";
+import Modal from "@shared/ui/Modal";
+import { closeAllModal, toggleModalState } from "@shared/store/modalSlice";
+import useUserStore from "@shared/hooks/useUserStore";
 
 const AuthChecker: React.FC<{ tokenExpiration: string | null }> = ({
   tokenExpiration,

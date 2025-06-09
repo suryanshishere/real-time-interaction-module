@@ -5,13 +5,13 @@ import * as Yup from "yup";
 import { Input } from "@shared/ui/Input";
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/shared/store";
+import { AppDispatch } from "@shared/store";
 import {
   triggerErrorMsg,
   triggerSuccessMsg,
-} from "@/shared/store/thunks/response-thunk";
-import axiosInstance from "@/shared/utils/api/axios-instance";
-import useUserStore from "@/shared/hooks/useUserStore";
+} from "@shared/store/thunks/response-thunk";
+import axiosInstance from "@shared/utils/axios-instance";
+import useUserStore from "@shared/hooks/useUserStore";
 
 const otpSchema = Yup.object().shape({
   email_verification_otp: Yup.number()

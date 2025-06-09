@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import { vote } from '../controllers/pollController.js';
+import { vote } from '@controllers/pollController';
 
 export default function initSocket(io: Server) {
   io.on('connection', (socket) => {

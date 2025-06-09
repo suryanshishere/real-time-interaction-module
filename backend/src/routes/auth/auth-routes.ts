@@ -6,12 +6,12 @@ import {
   verifyEmail,
   resetPassword,
   sendPasswordResetLink,
-} from "../../controllers/auth/index.js";
+} from "../../controllers/auth/index";
 import {
   validateEmail,
   validateOTP,
   validatePassword,
-} from "../utils.js";
+} from "../utils";
 
 const router = express.Router();
 

@@ -6,15 +6,15 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/shared/store";
+import { AppDispatch } from "@shared/store";
 import {
   triggerErrorMsg,
   triggerSuccessMsg,
-} from "@/shared/store/thunks/response-thunk";
-import axiosInstance from "@/shared/utils/api/axios-instance";
+} from "@shared/store/thunks/response-thunk";
+import axiosInstance from "@shared/utils/axios-instance";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Input } from "@/shared/utils/form/Input";
-import PageHeader from "@/shared/ui/PageHeader";
+import { Input } from "@shared/ui/Input";
+import PageHeader from "@shared/ui/PageHeader";
 import { useRouter, usePathname } from "next/navigation";
 
 const validationSchema = yup.object().shape({
@@ -25,11 +25,11 @@ interface IForgotPassword {
   email: string;
 }
 
-const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
+const ForgotPassword: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const {
     register,
     handleSubmit,
@@ -38,9 +38,6 @@ const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
     resolver: yupResolver(validationSchema),
     mode: "onSubmit",
   });
-  
-  const isForgotPasswordPage =
-    pathname === "/user/account/setting/forgot-password";
 
   const submitMutation = useMutation({
     mutationFn: async (data: IForgotPassword) => {
@@ -51,7 +48,6 @@ const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
       return response.data;
     },
     onSuccess: ({ message }) => {
-      if (!isForgotPasswordPage) dispatch(triggerSuccessMsg(message));
       if (onBack) {
         onBack();
       }
@@ -84,18 +80,14 @@ const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
   const formContent = (
     <form
       onSubmit={handleSubmit(submitHandler)}
-      className={
-        isForgotPasswordPage
-          ? "lg:w-2/3 flex flex-col gap-3"
-          : "flex-1 flex flex-col md:flex-row md:items-center gap-2"
-      }
+      className={"flex flex-col gap-3"}
     >
       <fieldset className="border-0 p-0 m-0 flex-1">
         <legend className="sr-only">Forgot Password Form</legend>
         <Input
           {...register("email")}
           type="email"
-          label={isForgotPasswordPage ? "Email" : undefined}
+          label={"Email"}
           error={!!errors.email}
           helperText={errors.email?.message}
           placeholder="Email"
@@ -103,17 +95,14 @@ const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
           outerClassProp="flex-1"
         />
       </fieldset>
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex-1 flex justify-end items-center gap-3">
         <button className="icon_button" onClick={backHandler}>
           <ArrowBackIcon fontSize="medium" />
         </button>
         <button
           aria-disabled={submitMutation.isPending ? "true" : "false"}
           disabled={submitMutation.isPending}
-          className={`${
-            isForgotPasswordPage ? "base_button" : "auth_button"
-          } w-full`}
-          type="submit"
+          type="submit"  className="outline rounded-full mx-1 px-3 py-1 hover:bg-gray-200"
         >
           {submitMutation.isPending
             ? "Sending reset password link.."
@@ -123,17 +112,7 @@ const ForgotPassword: React.FC<{onBack?: () => void}> = ({ onBack }) => {
     </form>
   );
 
-  return isForgotPasswordPage ? (
-    <main role="main" className="w-full flex flex-col gap-4">
-      <PageHeader
-        header="Forgot Password"
-        subHeader="Please provide your email to receive the password reset link."
-      />
-      {formContent}
-    </main>
-  ) : (
-    formContent
-  );
+  return formContent;
 };
 
 export default ForgotPassword;

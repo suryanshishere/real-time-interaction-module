@@ -1,4 +1,4 @@
-import HttpError from "../utils/http-errors.js";
+import HttpError from "@utils/http-errors";
 import { NextFunction, Request } from "express";
 import { validationResult } from "express-validator";
 
@@ -20,3 +20,13 @@ const handleValidationErrors = (req: Request, next: NextFunction): boolean => {
 };
 
 export { handleValidationErrors };
+
+
+export function generateSessionCode(length: number): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}

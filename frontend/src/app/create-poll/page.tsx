@@ -1,203 +1,199 @@
 "use client";
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useMutation } from "@tanstack/react-query";
 import LiveChart from "@components/LiveChart";
 import Timer from "@components/Timer";
 import { Input, TextArea } from "@shared/ui/Input";
 import ControlPointIcon from "@mui/icons-material/ControlPoint";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import axiosInstance from "@shared/utils/axios-instance";
+import { AppDispatch } from "@shared/store";
+import {
+  triggerErrorMsg,
+  triggerSuccessMsg,
+} from "@shared/store/thunks/response-thunk";
+
+interface PollResponse {
+  sessionCode: string;
+  options: string[];
+  message?: string;
+}
 
 export default function AdminPanel() {
+  const dispatch = useDispatch<AppDispatch>();
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [poll, setPoll] = useState<any>(null);
-  const [error, setError] = useState("");
-
   const [questionError, setQuestionError] = useState("");
-  const [optionsError, setOptionsError] = useState<string[]>([]);
+  const [optionsError, setOptionsError] = useState<string[]>(["", ""]);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  // Validate whole form on submit
+  // Keep optionsError in sync when options length changes
+  useEffect(() => {
+    setOptionsError((prev) => {
+      const newArr = [...prev];
+      while (newArr.length < options.length) newArr.push("");
+      return newArr.slice(0, options.length);
+    });
+  }, [options]);
+
   const validate = () => {
     let valid = true;
-    setError("");
     setQuestionError("");
-    setOptionsError([]);
+    const errs = options.map(() => "");
 
     if (!question.trim()) {
       setQuestionError("Question is required.");
       valid = false;
     }
-
-    const newOptionsError = options.map((opt) =>
-      !opt.trim() ? "Option is required." : ""
-    );
-
-    if (newOptionsError.some((e) => e !== "")) {
-      setOptionsError(newOptionsError);
-      valid = false;
-    }
-
+    options.forEach((opt, i) => {
+      if (!opt.trim()) {
+        errs[i] = "Option is required.";
+        valid = false;
+      }
+    });
+    setOptionsError(errs);
     return valid;
   };
 
-  const create = async () => {
+  const createMutation = useMutation<
+    PollResponse,
+    any,
+    { question: string; options: string[] }
+  >({
+    mutationFn: (payload) =>
+      axiosInstance.post("/poll/create", payload).then((res) => res.data),
+    onSuccess: (data) => {
+      dispatch(triggerSuccessMsg(data.message || "Poll created successfully."));
+    },
+    onError: (err) => {
+      const msg =
+        err.response?.data?.message || "Failed to create poll. Try again.";
+      dispatch(triggerErrorMsg(msg));
+      setMsg(msg);
+    },
+  });
+
+  const handleCreate = () => {
     if (!validate()) return;
-
-    try {
-      const res = await axios.post("http://localhost:4000/api/poll/create", {
-        question,
-        options: options.filter((o) => o.trim()),
-      });
-      setPoll(res.data);
-      setError("");
-    } catch (err) {
-      setError("Failed to create poll. Try again.");
-      console.error(err);
-    }
+    createMutation.mutate({
+      question,
+      options: options.filter((o) => o.trim()),
+    });
   };
 
-  const addOption = () => {
-    setOptions([...options, ""]);
-    setOptionsError([...optionsError, ""]);
+  const addOption = () => setOptions((prev) => [...prev, ""]);
+  const removeOption = (i: number) =>
+    setOptions((prev) => prev.filter((_, idx) => idx !== i));
+
+  const onOptionChange = (val: string, i: number) => {
+    setOptions((prev) => prev.map((o, idx) => (idx === i ? val : o)));
+  };
+  const onOptionBlur = (i: number) => {
+    setOptionsError((prev) =>
+      prev.map((e, idx) =>
+        idx === i && !options[i].trim() ? "Option is required." : ""
+      )
+    );
   };
 
-  const removeOption = (index: number) => {
-    if (options.length <= 2) return;
-    setOptions(options.filter((_, i) => i !== index));
-    setOptionsError(optionsError.filter((_, i) => i !== index));
+  const onQuestionChange = (val: string) => {
+    setQuestion(val);
+    if (questionError && val.trim()) setQuestionError("");
   };
-
-  const onOptionChange = (value: string, index: number) => {
-    const arr = [...options];
-    arr[index] = value;
-    setOptions(arr);
-
-    // Clear option error if fixed
-    if (optionsError[index]) {
-      const newErrors = [...optionsError];
-      newErrors[index] = value.trim() ? "" : "Option is required.";
-      setOptionsError(newErrors);
-    }
-  };
-
-  const onOptionBlur = (index: number) => {
-    const val = options[index];
-    const newErrors = [...optionsError];
-    newErrors[index] = val.trim() ? "" : "Option is required.";
-    setOptionsError(newErrors);
-  };
-
-  const onQuestionChange = (value: string) => {
-    setQuestion(value);
-    if (questionError) {
-      setQuestionError(value.trim() ? "" : "Question is required.");
-    }
-  };
-
   const onQuestionBlur = () => {
-    setQuestionError(question.trim() ? "" : "Question is required.");
+    if (!question.trim()) setQuestionError("Question is required.");
   };
 
-  // Disable create if any errors or empty fields
-  const isCreateDisabled =
-    !question.trim() ||
-    options.some((o) => !o.trim()) ||
-    questionError !== "" ||
-    optionsError.some((e) => e !== "");
+  const isCreating = createMutation.isPending;
+  const isDisabled = !question.trim() || options.some((o) => !o.trim());
 
   return (
     <div className="w-[30rem] my-8 mx-2 space-y-6 p-4 shadow rounded-xl">
       <h1 className="text-2xl font-bold">Create a Poll</h1>
 
-      <div>
-        <TextArea
-          name="question"
-          value={question}
-          onChange={(e) => onQuestionChange(e.target.value)}
-          onBlur={onQuestionBlur}
-          placeholder="Enter your question"
-          className={`w-full ${
-            questionError ? "border border-red-600" : ""
-          }`}
-        />
-        {questionError && (
-          <div className="text-sm text-red-600 font-medium mt-1">
-            {questionError}
-          </div>
-        )}
-      </div>
+      <TextArea
+        name="question"
+        value={question}
+        onChange={(e) => onQuestionChange(e.target.value)}
+        onBlur={onQuestionBlur}
+        placeholder="Enter your question"
+        className={`w-full ${questionError ? "border-custom_red border" : ""}`}
+      />
+      {questionError && (
+        <p className="text-custom_red text-sm">{questionError}</p>
+      )}
 
-      {options.map((o, i) => (
+      {options.map((opt, i) => (
         <div key={i} className="flex items-center gap-2">
-          <div className="flex-1">
-            <Input
-              type="text"
-              name={`option-${i}`}
-              value={o}
-              onChange={(e) => onOptionChange(e.target.value, i)}
-              onBlur={() => onOptionBlur(i)}
-              placeholder={`Option ${i + 1}`}
-              className={`w-full ${optionsError[i] ? "border border-red-600" : ""}`}
-            />
-            {optionsError[i] && (
-              <div className="text-sm text-red-600 font-medium mt-1">
-                {optionsError[i]}
-              </div>
-            )}
-          </div>
-
+          <Input
+            type="text"
+            name={`option-${i}`}
+            value={opt}
+            onChange={(e) => onOptionChange(e.target.value, i)}
+            onBlur={() => onOptionBlur(i)}
+            placeholder={`Option ${i + 1}`}
+            className={`w-full ${
+              optionsError[i] ? "border-custom_red border" : ""
+            }`}
+          />
           <button
+            type="button"
             onClick={() => removeOption(i)}
             disabled={options.length <= 2}
-            className={`p-1 flex items-center justify-center rounded-full hover:bg-gray-200 transition ${
+            className={`p-1 rounded-full hover:bg-gray-200 transition ${
               options.length <= 2
                 ? "opacity-50 cursor-not-allowed"
-                : "text-red-500"
+                : "text-custom_red"
             }`}
-            title={
-              options.length <= 2
-                ? "At least two options required"
-                : "Remove this option"
-            }
-            type="button"
           >
             <RemoveCircleOutlineIcon />
           </button>
         </div>
       ))}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex justify-between items-center gap-2">
         <button
-          onClick={addOption}
-          className="flex gap-1 items-center hover:bg-gray-200 mt-1 py-1 px-2 rounded-full"
           type="button"
+          onClick={addOption}
+          className="flex items-center gap-1 hover:bg-gray-200 p-1 rounded-full"
         >
-          <ControlPointIcon />
-          <span className="mb-[2px]">Add Option</span>
+          <ControlPointIcon /> Add Option
         </button>
         <button
-          onClick={create}
-          className={`custom_go ${isCreateDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={isCreateDisabled}
-          title={isCreateDisabled ? "Fill in question and all options" : ""}
+          onClick={handleCreate}
+          disabled={isDisabled || isCreating}
+          className={`custom_go ${
+            isDisabled || isCreating ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
-          Create Poll
+          {isCreating ? "Creating..." : "Create Poll"}
         </button>
       </div>
 
-      {error && <div className="text-sm text-red-600 font-medium">{error}</div>}
-
-      {poll && (
-        <div className="space-y-4 mt-6">
+      {createMutation.isSuccess && createMutation.data && (
+        <div className="mt-6 space-y-4">
           <div className="text-green-700 font-semibold">
-            ✅ Poll Created! <br />
+            ✅ Poll Created!
+            <br />
             Session Code:{" "}
-            <span className="font-mono text-lg">{poll.sessionCode}</span>
+            <span className="font-mono text-lg">
+              {createMutation.data.sessionCode}
+            </span>
           </div>
-
-          <LiveChart code={poll.sessionCode} options={poll.options} />
+          <LiveChart
+            code={createMutation.data.sessionCode}
+            options={createMutation.data.options.map((option) => ({
+              label: option,
+              votes: 0,
+            }))}
+          />
           <Timer />
         </div>
+      )}
+
+      {msg && createMutation.isError && (
+        <p className="text-red-600 text-sm">{msg}</p>
       )}
     </div>
   );

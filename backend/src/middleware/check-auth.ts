@@ -1,10 +1,7 @@
-import HttpError from "../utils/http-errors.js";
+import HttpError from "@utils/http-errors";
 import { Response, NextFunction, Request } from "express";
 import { expressjwt } from "express-jwt";
-import lodash from "lodash";
-const { isRegExp } = lodash;
-
-const JWT_KEY = process.env.JWT_KEY || "";
+import { isRegExp } from "lodash";
 
 // Define paths that do not require authorization (excluded routes)
 export const excludedPaths: (string | RegExp)[] = [
@@ -17,14 +14,13 @@ export const excludedPaths: (string | RegExp)[] = [
 // Define paths that optionally require authorization (only if token is present)
 export const optionalPaths: (string | RegExp)[] = [
   "/",
-  "/home",
   "/auth/send-password-reset-link",
   "/auth/send-verification-otp",
 ];
 
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   const checkAuth = expressjwt({
-    secret: JWT_KEY,
+    secret: process.env.JWT_KEY ?? "",
     algorithms: ["HS256"],
     requestProperty: "userData",
     credentialsRequired: true,

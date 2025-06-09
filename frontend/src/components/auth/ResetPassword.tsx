@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
-import { AppDispatch } from "@/shared/store";
-import axiosInstance from "@/shared/utils/api/axios-instance";
+import { AppDispatch } from "@shared/store";
+import axiosInstance from "@shared/utils/axios-instance";
 import {
   triggerErrorMsg,
   triggerSuccessMsg,
-} from "@/shared/store/thunks/response-thunk";
-import ForgotPassword from "./ForgotPassword";
-import PageHeader from "@/shared/ui/PageHeader";
-import { Input } from "@/shared/utils/form/Input";
+} from "@shared/store/thunks/response-thunk";
+import PageHeader from "@shared/ui/PageHeader";
+import { Input } from "@shared/ui/Input";
 
 const validationSchema = yup.object().shape({
   new_password: yup.string().required("New password is required"),

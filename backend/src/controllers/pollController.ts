@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import Poll, { IPoll } from "../models/Poll.js";
-import { nanoid } from "nanoid";
+import Poll from "@models/Poll";
+import { generateSessionCode } from "./utils";
 
 export const createPoll = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { question, options } = req.body;
-  const sessionCode = nanoid(6).toUpperCase();
+  const sessionCode = generateSessionCode(6);
   const poll = new Poll({
     sessionCode,
     question,

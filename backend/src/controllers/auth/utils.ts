@@ -1,15 +1,10 @@
-import { IUser } from "../../models/User.js";
-import { sendVerificationOtp } from "./index.js";
+import { IUser } from "@models/User";
+import { sendVerificationOtp } from "./index";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { NextFunction, Response, Request } from "express";
 import lodash from "lodash";
 const { random } = lodash;
-
-const JWT_KEY = process.env.JWT_KEY || "";
-const JWT_KEY_EXPIRY = process.env.JWT_KEY_EXPIRY
-  ? parseInt(process.env.JWT_KEY_EXPIRY, 10)
-  : 15; // Default to 15 minutes if not set
 
 // Update unverified user fields with new password and verification token
 export const updateUnverifiedUser = async (user: IUser, password: string) => {
@@ -45,7 +40,7 @@ export const generateJWTToken = (
   role: string = "none",
   deactivatedAt?: Date
 ): string => {
-  if (!JWT_KEY) {
+  if (!process.env.JWT_KEY) {
     throw new Error("JWT_KEY environment variable is not defined!");
   }
 
@@ -56,8 +51,12 @@ export const generateJWTToken = (
     ...(deactivatedAt && { deactivated_at: deactivatedAt }),
   };
 
-  return jwt.sign(payload, JWT_KEY, {
-    expiresIn: `${JWT_KEY_EXPIRY}m`,
+  const jwtKeyExpiryStr = process.env.JWT_KEY_EXPIRY || "15";
+  const jwtKeyExpiry = parseInt(jwtKeyExpiryStr, 10);
+  const jwtKey = process.env.JWT_KEY || "";
+
+  return jwt.sign(payload, jwtKey, {
+    expiresIn: `${jwtKeyExpiry}m`,
   });
 };
 
@@ -95,8 +94,8 @@ export const sendAuthenticatedResponse = (
     "none",
     user.deactivated_at
   );
-
-  const expiresInMs = Number(JWT_KEY_EXPIRY) * 60000;
+  const jwtKeyExpiry = process.env.JWT_KEY_EXPIRY || "60";
+  const expiresInMs = Number(jwtKeyExpiry) * 60000;
   const tokenExpiration = new Date(Date.now() + expiresInMs);
 
   const isProduction = process.env.NODE_ENV === "production";

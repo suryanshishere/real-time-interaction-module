@@ -4,17 +4,15 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/shared/store";
+import { AppDispatch } from "@shared/store";
 import {
   triggerErrorMsg,
   triggerSuccessMsg,
-} from "@/shared/store/thunks/response-thunk";
-import axiosInstance from "@/shared/utils/api/axios-instance";
-import { Input } from "@/shared/utils/form/Input";
+} from "@shared/store/thunks/response-thunk";
+import axiosInstance from "@shared/utils/axios-instance";
+import { Input } from "@shared/ui/Input";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { SHARED_DB } from "@/db/shared";
-import { usePathname } from "next/navigation";
-import useUserStore from "@/shared/hooks/useUserStore";
+import useUserStore from "@shared/hooks/useUserStore";
 
 // Validation schema using Yup for the email/password form
 const validationSchema = yup.object().shape({
@@ -44,37 +42,20 @@ const AuthItem: React.FC = () => {
     resolver: yupResolver(validationSchema),
     mode: "onSubmit",
   });
-  const pathname = usePathname();
   const { login } = useUserStore();
 
   // Mutation to send auth data (email/password or googleToken)
   const submitMutation = useMutation({
     mutationFn: async (data: AuthMutationInput) => {
       const response = await axiosInstance.post(
-        `/user/auth`,
+        `/auth`,
         JSON.stringify(data)
       );
       return response.data;
     },
-    onSuccess: async ({
-      isEmailVerified,
-      role,
-      mode,
-      deactivated_at,
-      message,
-    }) => {
-      // *** trigger ISR rebuild of this section page ***
-      await fetch("/api/revalidate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-revalidate-token": SHARED_DB.REVALIDATE_SECRET,
-        },
-        body: JSON.stringify({ path: pathname }),
-      });
-
+    onSuccess: async ({ isEmailVerified, deactivated_at, message }) => {
       dispatch(triggerSuccessMsg(message));
-      login({ is_email_verified: isEmailVerified, role, mode, deactivated_at });
+      login({ is_email_verified: isEmailVerified, deactivated_at });
 
       setTimeout(() => {
         window.location.reload();
@@ -109,10 +90,10 @@ const AuthItem: React.FC = () => {
     >
       <section aria-label="User Authentication">
         <form
-          className="flex-1 flex flex-col tablet:flex-row tablet:items-center gap-2 justify-end"
+          className="flex flex-col gap-4 w-full"
           onSubmit={handleSubmit(submitHandler)}
         >
-          <fieldset className="border-0 p-0 m-0 flex-1 flex flex-col large_mobile:flex-row large_mobile:items-center gap-2 justify-end">
+          <fieldset className="border-0 p-0 m-0 flex flex-col gap-3 w-full">
             <legend className="sr-only">Login Form</legend>
             <Input
               type="email"
@@ -120,7 +101,7 @@ const AuthItem: React.FC = () => {
               error={!!errors.email}
               helperText={errors.email?.message}
               placeholder="Email"
-              className="placeholder:text-sm outline-custom_gray"
+              className="placeholder:text-smay"
               outerClassProp="flex-1"
             />
             <Input
@@ -129,25 +110,25 @@ const AuthItem: React.FC = () => {
               error={!!errors.password}
               helperText={errors.password?.message}
               placeholder="Password / Create new password"
-              className="placeholder:text-sm outline-custom_gray"
+              className="placeholder:text-sm"
               outerClassProp="flex-1"
             />
           </fieldset>
-          <div className="flex items-center gap-2 overflow-hidden">
-            <button
-              aria-disabled={submitMutation.isPending ? "true" : "false"}
-              disabled={submitMutation.isPending}
-              type="submit"
-              className="w-full auth_button"
-            >
-              {submitMutation.isPending ? "Authenticating..." : "Authenticate"}
-            </button>
+          <div className="flex items-center gap-2 overflow-hidden w-full">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleFailure}
               shape="circle"
               text="continue_with"
             />
+            <button
+              aria-disabled={submitMutation.isPending ? "true" : "false"}
+              disabled={submitMutation.isPending}
+              type="submit"
+              className="custom_go m-1 flex-1"
+            >
+              {submitMutation.isPending ? "Authenticating..." : "Authenticate"}
+            </button>
           </div>
         </form>
       </section>

@@ -5,7 +5,7 @@ import ForgotPassword from "./ForgotPassword";
 import Item from "./Item";
 import EmailVerification from "./EmailVerification";
 import Link from "next/link";
-import useUserStore from "@/shared/hooks/useUserStore";
+import useUserStore from "@shared/hooks/useUserStore";
 
 export interface AuthProps {
   onBack?: () => void;
@@ -43,27 +43,10 @@ const AuthFlow: React.FC<AuthProps> = ({ tokenExists = false }) => {
         </button>
       )}
 
-      {tokenExists && !is_email_verified && (
-        <button
-          onClick={logout}
-          className="hover:text-custom_less_red text-left"
-        >
-          Logout
-        </button>
-      )}
+ 
+   
 
-      <Link href="/contact" className="hover:text-custom_less_red max-w-fit">
-        Need help?
-      </Link>
-
-      {(!tokenExists || is_email_verified) && (
-        <button
-          onClick={() => handleAuthClick(false)}
-          className="hover:text-custom_less_red"
-        >
-          Close
-        </button>
-      )}
+     
     </nav>
   );
 
@@ -94,8 +77,8 @@ const AuthFlow: React.FC<AuthProps> = ({ tokenExists = false }) => {
 
   return (
     <main
-      role="main"
-      className="w-full flex flex-col large_mobile:flex-row large_mobile:items-center gap-3"
+      role="main" 
+      className="w-full flex flex-col gap-4"
     >
       {renderComponents()}
       {renderButtons()}

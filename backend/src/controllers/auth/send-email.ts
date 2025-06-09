@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import HttpError from "../../utils/http-errors.js";
+import HttpError from "@utils/http-errors";
 import { NextFunction } from "express";
 
 const sendEmail = async (

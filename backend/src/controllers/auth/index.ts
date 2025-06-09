@@ -1,22 +1,21 @@
 import { Response, NextFunction, Request } from "express";
-import HttpError from "../../utils/http-errors.js";
+import HttpError from "@utils/http-errors";
 import bcrypt from "bcryptjs";
-import sendEmail from "./send-email.js";
-import User, { IUser } from "../../models/User.js";
+import sendEmail from "./send-email";
+import User, { IUser } from "@models/User";
 import {
   checkRequestDelay,
   sendAuthenticatedResponse,
   sendVerificationResponse,
   updateUnverifiedUser,
-} from "./utils.js";
-import { handleValidationErrors } from "../utils.js";
+} from "./utils";
+import { handleValidationErrors } from "../utils";
 import { OAuth2Client } from "google-auth-library";
 import lodash from "lodash";
 const { random } = lodash;
 
 const EMAIL_VERIFICATION_OTP_EXPIRY = 15; // in minutes
 const PASSWORD_RESET_TOKEN_EXPIRY = 15; // in minutes
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const UNVERIFIED_USER_EXPIRY = 15; // in minutes
 
 
@@ -40,10 +39,10 @@ export const auth = async (req: CustomRequest, res: Response, next: NextFunction
 
     if (google_token) {
       try {
-        const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         const ticket = await client.verifyIdToken({
           idToken: google_token,
-          audience: GOOGLE_CLIENT_ID,
+          audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
         if (!payload?.email) {

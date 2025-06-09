@@ -26,40 +26,39 @@ export default function Home() {
   const letterAnimations = useMemo(
     () =>
       letters.map(
-        () =>
-          animationClasses[Math.floor(Math.random() * animationClasses.length)]
+        (_, idx) =>
+          // cycle through animationClasses in order
+          animationClasses[idx % animationClasses.length]
       ),
     []
   );
 
   return (
-    <>
-      <h1 className="-mb-9 mr-20 text-3xl font-extrabold font-mono flex gap-4">
-        {letters.map((L, i) => (
-          <span key={i} className={`${L.color} ${letterAnimations[i]}`}>
-            {L.char}
-          </span>
-        ))}
-      </h1>
-
-      <div className="flex items-center justify-center gap-4">
-        <div className="flex flex-col items-center sm:flex-row justify-center gap-4">
-          <Link href="/create-poll" className="custom_go text-xl">
-            Create a poll
-          </Link>
-          <Link href="/vote" className="custom_go text-xl">
-            Vote
-          </Link>
-        </div>
-
+    <div className="flex flex-col sm:items-start justify-center">
+      <div className="flex items-center justify-center gap-3">
+        <h1 className="text-3xl font-extrabold font-mono flex gap-4">
+          {letters.map((L, i) => (
+            <span key={i} className={`${L.color} ${letterAnimations[i]}`}>
+              {L.char}
+            </span>
+          ))}
+        </h1>
         <Image
           src="/assets/homeVote.png"
           alt="Vote Illustration Icon"
           width={100}
           height={100}
-          className="mb-10 -ml-4"
+          className="mb-2 -ml-4"
         />
       </div>
-    </>
+      <div className="text-center mr-14 -mt-4 sm:mr-0 sm:-mt-6 sm:-ml-6 z-10 flex text-xl flex-col items-center sm:flex-row justify-center gap-4">
+        <Link href="/create-poll" className="custom_go w-full sm:w-auto">
+          Create a poll
+        </Link>
+        <Link href="/vote" className="custom_go w-full sm:w-auto">
+          Vote
+        </Link>
+      </div>
+    </div>
   );
 }
