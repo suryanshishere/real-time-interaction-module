@@ -103,16 +103,16 @@ export const sendAuthenticatedResponse = (
   res.cookie("token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: isProduction ? "lax" : "lax",
     expires: tokenExpiration,
-    domain: isProduction ? ".saarkaari.com" : undefined,
+    domain: isProduction ? "pollbuzz.vercel.app" : undefined,
   });
 
   res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: isProduction ? "lax" : "lax",
     expires: tokenExpiration,
-    domain: isProduction ? ".saarkaari.com" : undefined,
+    domain: isProduction ? "pollbuzz.vercel.app" : undefined,
   });
 
   res.status(200).json({
