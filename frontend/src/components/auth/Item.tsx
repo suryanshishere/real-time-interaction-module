@@ -50,9 +50,13 @@ const AuthItem: React.FC = () => {
       const response = await axiosInstance.post(`/auth`, data);
       return response.data;
     },
-    onSuccess: async ({ isEmailVerified, deactivated_at, message }) => {
+    onSuccess: async ({ isEmailVerified, deactivated_at, message, token }) => {
       dispatch(triggerSuccessMsg(message));
-      login({ is_email_verified: isEmailVerified, deactivated_at });
+      login({
+        is_email_verified: isEmailVerified,
+        deactivated_at,
+        tokenBoolean: Boolean(token),
+      });
 
       setTimeout(() => {
         window.location.reload();

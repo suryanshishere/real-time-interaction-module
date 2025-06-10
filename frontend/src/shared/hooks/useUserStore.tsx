@@ -8,11 +8,12 @@ interface IUserState {
   is_otp_sent: boolean;
   deactivated_at: string | null;
   is_email_verified: boolean;
+  tokenBoolean: boolean;
 }
 
 interface IUserActions {
   handleAuthClick: (val: boolean) => void;
-  login: (payload: { is_email_verified: boolean; deactivated_at?: string | null }) => void;
+  login: (payload: { is_email_verified: boolean; deactivated_at?: string | null, tokenBoolean: boolean }) => void;
   logout: () => Promise<void>;
   updateUserData: (payload: Partial<IUserState>) => void;
   updateMode: (payload: Partial<IUserState>) => void;
@@ -25,7 +26,8 @@ const defaultState: IUserState = {
   is_nav_auth_clicked: false,
   is_otp_sent: false,
   deactivated_at: null,
-  is_email_verified: false
+  is_email_verified: false,
+  tokenBoolean:false
 };
 
 // --- Store ---
@@ -38,12 +40,13 @@ const useUserStore = create<UserStore>()(
 
       handleAuthClick: (val: boolean) => set({ is_nav_auth_clicked: val }),
 
-      login: ({ is_email_verified, deactivated_at }) => {
+      login: ({ is_email_verified, deactivated_at, tokenBoolean }) => {
         set({
           is_email_verified,
           deactivated_at: deactivated_at ?? null,
           is_otp_sent: true,
           is_nav_auth_clicked: is_email_verified ? false : get().is_nav_auth_clicked,
+          tokenBoolean,
         });
       },
 

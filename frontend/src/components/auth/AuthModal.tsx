@@ -12,17 +12,17 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ tokenExists }: AuthModalProps) {
-  const { is_email_verified, logout } = useUserStore();
-  const [open, setOpen] = useState(tokenExists && !is_email_verified);
+  const { is_email_verified, logout, tokenBoolean } = useUserStore();
+  const [open, setOpen] = useState(tokenBoolean && !is_email_verified);
 
   useEffect(() => {
-    setOpen(tokenExists && !is_email_verified);
-  }, [tokenExists, is_email_verified]);
+    setOpen(tokenBoolean && !is_email_verified);
+  }, [tokenBoolean, is_email_verified]);
 
   return (
     <>
       <div className="flex flex-col items-center gap-2 justify-center my-6 w-full">
-        {!tokenExists ? (
+        {!tokenBoolean ? (
           <>
             <button
               onClick={() => setOpen(true)}
