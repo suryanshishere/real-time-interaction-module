@@ -4,6 +4,7 @@ Deployed at:
 
 * **Frontend:** [https://pollbuzz.vercel.app/](https://pollbuzz.vercel.app/)
 * **Backend:** [https://pollbuzz-backend.onrender.com/](https://pollbuzz-backend.onrender.com/)
+* **Overview:** [https://www.loom.com/share/43bb07bdc3d14aeda92c2defa1f43b57?sid=8a8a2fb2-e550-47c2-864c-4cbcedc79453](2 minute screen recording walkthrough)
 
 A simple real‑time polling session application that lets an admin host interactive polls and an audience join, vote, and view live results.
 
