@@ -54,7 +54,7 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}
         confirmButton={false}
-        tokenExists={tokenExists}
+        tokenExists={tokenBoolean}
       >
         <AuthFlow tokenExists={is_email_verified} />
       </Modal>

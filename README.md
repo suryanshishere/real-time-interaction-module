@@ -116,7 +116,7 @@ For quick testing use:
 
 > **Email:** [heresuryanshsingh@gmail.com](mailto:heresuryanshsingh@gmail.com)
 >
-> **Password:** test123
+> **Password:** test12345
 
 ---
 
