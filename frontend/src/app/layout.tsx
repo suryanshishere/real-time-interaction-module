@@ -10,7 +10,7 @@ export const metadata = {
   description:
     "PollBuzz lets you create, join, and interact with live polls in real-time. Perfect for teams, events, classrooms, and social interactions.",
   icons: {
-    icon: "./icon.png",
+    icon: "/icon.png",
   },
 };
 

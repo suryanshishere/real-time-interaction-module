@@ -75,21 +75,11 @@ export default function PollPage() {
     };
   }, [poll, dispatch]);
 
-  // Load selected vote from localStorage
-  useEffect(() => {
-    if (!poll) return;
-    const storedVote = localStorage.getItem(`voted_${poll.sessionCode}`);
-    if (storedVote !== null) {
-      setSelectedVote(Number(storedVote));
-    }
-  }, [poll]);
-
   // Cast vote with optimistic update
   const castVote = (idx: number) => {
     if (!poll || !votes || selectedVote !== null) return;
 
-    setSelectedVote(idx);
-    localStorage.setItem(`voted_${poll.sessionCode}`, idx.toString());
+    setSelectedVote(idx); // this only affects current session
 
     setVotes((prevVotes) => {
       if (!prevVotes) return prevVotes;
@@ -139,7 +129,7 @@ export default function PollPage() {
           >
             {opt}
             {selectedVote === i && (
-              <span className="ml-2 text-green-700 font-medium">(You voted this)</span>
+              <span className="ml-2 text-green-700 font-medium">(You just voted this)</span>
             )}
           </button>
         ))}
