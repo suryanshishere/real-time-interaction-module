@@ -56,7 +56,7 @@ export default function AuthModal({ tokenExists }: AuthModalProps) {
         confirmButton={false}
         tokenExists={tokenBoolean}
       >
-        <AuthFlow tokenExists={is_email_verified} />
+        <AuthFlow tokenExists={tokenBoolean} />
       </Modal>
     </>
   );
