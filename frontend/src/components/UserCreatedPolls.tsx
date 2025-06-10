@@ -31,7 +31,7 @@ export default function UserCreatedPolls() {
       });
   }, []);
 
-  if (loading) return <div>Loading your polls...</div>;
+  if (loading) return <div className="w-full text-center">Loading your polls...</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
   if (polls.length === 0) return <div>You haven't created any polls yet.</div>;

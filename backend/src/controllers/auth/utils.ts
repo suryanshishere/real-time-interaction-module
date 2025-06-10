@@ -99,6 +99,9 @@ export const sendAuthenticatedResponse = (
   const tokenExpiration = new Date(Date.now() + expiresInMs);
 
   const isProduction = process.env.NODE_ENV === "production";
+  const domain = isProduction
+    ? "pollbuzz-backend.onrender.com" // production backend domain
+    : undefined;
 
   res.cookie("token", token, {
     httpOnly: true,
@@ -106,6 +109,7 @@ export const sendAuthenticatedResponse = (
     sameSite: isProduction ? "none" : "lax",
     expires: tokenExpiration,
     path: "/",
+    domain,
   });
 
   res.cookie("tokenExpiration", tokenExpiration.toISOString(), {
@@ -113,6 +117,7 @@ export const sendAuthenticatedResponse = (
     sameSite: isProduction ? "none" : "lax",
     expires: tokenExpiration,
     path: "/",
+    domain,
   });
 
   res.status(200).json({
