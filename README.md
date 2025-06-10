@@ -1,5 +1,10 @@
 **Real‑Time Interaction Module**
 
+Deployed at:
+
+* **Frontend:** [https://pollbuzz.vercel.app/](https://pollbuzz.vercel.app/)
+* **Backend:** [https://pollbuzz-backend.onrender.com/](https://pollbuzz-backend.onrender.com/)
+
 A simple real‑time polling session application that lets an admin host interactive polls and an audience join, vote, and view live results.
 
 ---
@@ -26,7 +31,7 @@ A simple real‑time polling session application that lets an admin host interac
 * **Extras**
 
   * Email notifications
-  * Responsive UI with Next.js
+  * Responsive UI with Next.js App Router
   * Socket.IO for bidirectional communication
 
 ---
@@ -47,7 +52,7 @@ While developing this module, the following evaluation areas were kept in focus:
 
 * **Frontend:**
 
-  * Next.js (React)
+  * Next.js (App Router)
   * Tailwind CSS
   * Chart.js / Recharts
   * Socket.IO client
@@ -60,9 +65,8 @@ While developing this module, the following evaluation areas were kept in focus:
   * JWT for authentication
 * **DevOps & Testing:**
 
-  * Vercel (frontend) & Render/Heroku (backend)
+  * Vercel (frontend) & Render (backend)
   * ESLint & Prettier
-  * Jest + Supertest
 
 ---
 
@@ -121,16 +125,26 @@ For quick testing use:
 ```
 ├── backend/
 │   ├── src/
+│   │   ├── config/
 │   │   ├── controllers/
+│   │   ├── middlewares/
 │   │   ├── models/
 │   │   ├── routes/
+│   │   ├── services/
 │   │   └── utils/
 │   ├── .env.example
+│   ├── index.ts
 │   └── package.json
 ├── frontend/
-│   ├── pages/
+│   ├── app/
+│   │   ├── (auth|poll|admin)/
+│   │   └── layout.tsx
 │   ├── components/
+│   ├── hooks/
+│   ├── lib/
 │   ├── styles/
+│   ├── utils/
+│   ├── env.mjs
 │   └── package.json
 └── README.md
 ```
