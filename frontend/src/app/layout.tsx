@@ -38,6 +38,9 @@ export default async function RootLayout({
             <br />
             <span className="font-mono">password: test12345</span>
           </p>
+<p className="text-xs text-gray-500 font-mono">            
+              Render backend is slow. So, please be patience while processing a backend request.
+                 </p>
         </ClientProviders>
       </body>
     </html>
