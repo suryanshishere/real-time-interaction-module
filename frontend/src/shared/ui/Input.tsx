@@ -1,24 +1,52 @@
-import React, { CSSProperties, forwardRef, ChangeEvent } from "react";
-import { startCase } from "lodash";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import type { ChangeEvent, CSSProperties, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+function startCase(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+interface SharedFieldProps {
   name: string;
   label?: string | boolean;
-  placeholder?: string;
-  required?: boolean;
-  style?: CSSProperties;
-  row?: number;
-  value?: string | number;
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   error?: boolean;
   helperText?: string;
-  disabled?: boolean;
-  type?: string;
-  className?: string;
   outerClassProp?: string;
   errorClassProp?: string;
-  maxHeight?: number;
-  autoComplete?: string;
+}
+
+export interface InputProps
+  extends SharedFieldProps,
+    Omit<InputHTMLAttributes<HTMLInputElement>, "name" | "onChange"> {
+  style?: CSSProperties;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+function FieldFrame({
+  children,
+  error,
+  outerClassProp,
+}: {
+  children: ReactNode;
+  error?: boolean;
+  outerClassProp?: string;
+}) {
+  return (
+    <div className={`relative flex w-full items-center group ${outerClassProp ?? ""}`} role="group">
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 translate-x-1 translate-y-1 bg-black transition-transform duration-200 ease-out group-focus-within:translate-x-0 group-focus-within:translate-y-0 ${error ? "opacity-70" : "opacity-50"}`}
+      />
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 border-2 border-black bg-white transition-colors duration-200 ease-out ${error ? "border-red-600 bg-red-100" : ""}`}
+      />
+      {children}
+    </div>
+  );
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -28,7 +56,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       label,
       placeholder,
       required,
-      type,
+      type = "text",
       style,
       value,
       onChange,
@@ -40,238 +68,114 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       autoComplete,
       ...rest
     },
-    ref
+    ref,
   ) => {
-    const [showPassword, setShowPassword] = React.useState<boolean>(false);
     const errorId = helperText && error ? `${name}-error` : undefined;
-
-    const togglePasswordVisibility = () => {
-      setShowPassword((prevShowPassword) => !prevShowPassword);
-    };
-
-    const endAdornment = (() => {
-      if (type === "password") {
-        return (
-          <button
-            type="button"
-            className="p-0 hover:text-custom_red absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-custom_gray"
-            onClick={togglePasswordVisibility}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        );
-      } else if (type === "search") {
-        return (
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            🔍
-          </span>
-        );
-      }
-      return null;
-    })();
-
     return (
-      <div className={`relative w-full flex items-center group ${outerClassProp ?? ""}`} role="group">
-        {/* Black shadow offset */}
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 bg-black
-            transform translate-x-1 translate-y-1
-            transition-transform duration-200 ease-out
-            ${error ? "opacity-70" : "opacity-50"}
-            group-focus-within:translate-x-0 group-focus-within:translate-y-0
-            ${error ? "group-focus-within:opacity-80" : ""}
-          `}
-        />
-        {/* White background + border */}
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 bg-white border-2 border-black
-            transition-colors duration-200 ease-out
-            ${error ? "border-red-600 bg-red-100" : ""} group-focus-within:border-black`}
-        />
-
+      <FieldFrame error={error} outerClassProp={outerClassProp}>
         {label && (
-          <label htmlFor={name} className="block text-sm font-medium mb-1 absolute -top-6 left-0">
+          <label htmlFor={name} className="absolute -top-6 left-0 block text-sm font-medium">
             {typeof label === "string" ? startCase(label) : startCase(name)}
           </label>
         )}
-
         <input
+          {...rest}
           ref={ref}
           id={name}
           name={name}
-          type={showPassword && type === "password" ? "text" : type}
-          autoComplete={
-            autoComplete ??
-            (type === "password"
-              ? "current-password"
-              : type === "email"
-              ? "username"
-              : undefined)
-          }
+          type={type}
           required={required}
           placeholder={placeholder || startCase(name)}
           value={value}
           onChange={onChange}
-          aria-invalid={error ? "true" : "false"}
+          autoComplete={autoComplete}
+          aria-invalid={error || undefined}
           aria-describedby={errorId}
-          className={`relative w-full bg-transparent pl-2 py-2 outline-none text-base rounded
-            text-black
-            ${error ? "text-red-700" : ""}
-            ${className}`}
+          className={`relative w-full rounded bg-transparent py-2 pl-2 text-base text-black outline-none ${error ? "text-red-700" : ""} ${className ?? ""}`}
           style={style}
-          {...rest}
         />
-        {endAdornment && (
-          <div className="absolute right-1 flex items-center h-full">{endAdornment}</div>
-        )}
-        {helperText && (
-          <p
-            id={errorId}
-            className={`ml-2 mt-[2px] text-xs w-auto whitespace-nowrap ${
-              error ? "text-custom_red" : "hidden"
-            } ${errorClassProp}`}
-          >
+        {helperText && error && (
+          <p id={errorId} className={`ml-2 mt-px whitespace-nowrap text-xs text-custom_red ${errorClassProp ?? ""}`}>
             {helperText.replace(/_/g, " ")}
           </p>
         )}
-      </div>
+      </FieldFrame>
     );
-  }
+  },
 );
-
 Input.displayName = "Input";
 
 export interface TextAreaProps
-  extends Omit<
-    React.TextareaHTMLAttributes<HTMLTextAreaElement>,
-    "onChange" | "name" | "value" | "rows"
-  > {
-  name: string;
-  label?: string | boolean;
-  placeholder?: string;
-  required?: boolean;
-  style?: CSSProperties;
+  extends SharedFieldProps,
+    Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "name" | "onChange" | "rows"> {
   row?: number;
-  value?: string | number;
-  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-  error?: boolean;
-  helperText?: string;
-  disabled?: boolean;
-  className?: string;
-  outerClassProp?: string;
-  errorClassProp?: string;
   maxHeight?: number;
+  onChange?: (event: ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
     {
       name,
-      required,
+      label,
+      row = 4,
+      maxHeight = 300,
       value,
       onChange,
-      row = 4,
-      placeholder,
-      disabled = false,
       error,
       helperText,
       className,
       outerClassProp,
       errorClassProp,
-      label,
-      maxHeight = 300,
       ...rest
     },
-    ref
+    forwardedRef,
   ) => {
-    const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
-    const [height, setHeight] = React.useState<string>("auto");
+    const localRef = useRef<HTMLTextAreaElement | null>(null);
+    const [height, setHeight] = useState("auto");
+    const resize = (element: HTMLTextAreaElement) => {
+      element.style.height = "auto";
+      setHeight(`${Math.min(element.scrollHeight, maxHeight)}px`);
+    };
+    useEffect(() => {
+      if (localRef.current) resize(localRef.current);
+    }, [value, maxHeight]);
     const errorId = helperText && error ? `${name}-error` : undefined;
 
-    React.useEffect(() => {
-      if (textAreaRef.current) {
-        setHeight("auto"); // Reset before recalculating
-        const newHeight = textAreaRef.current.scrollHeight;
-        setHeight(`${Math.min(newHeight, maxHeight)}px`); // Limit height
-      }
-    }, [value, maxHeight]);
-
     return (
-      <div className={`relative group ${outerClassProp || ""}`} role="group">
-        {/* Black shadow offset */}
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 bg-black
-            transform translate-x-1 translate-y-1
-            transition-transform duration-200 ease-out
-            ${error ? "opacity-70" : "opacity-50"}
-            group-focus-within:translate-x-0 group-focus-within:translate-y-0
-            ${error ? "group-focus-within:opacity-80" : ""}
-          `}
-        />
-        {/* White background + border */}
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 bg-white border-2 border-black
-            transition-colors duration-200 ease-out
-            ${error ? "border-red-600 bg-red-100" : ""} group-focus-within:border-black`}
-        />
-
+      <FieldFrame error={error} outerClassProp={outerClassProp}>
         {label && (
-          <label htmlFor={name} className="block text-sm font-medium mb-1 absolute -top-6 left-0">
+          <label htmlFor={name} className="absolute -top-6 left-0 block text-sm font-medium">
             {typeof label === "string" ? startCase(label) : startCase(name)}
           </label>
         )}
-
         <textarea
-          placeholder={placeholder}
-          ref={(el) => {
-            if (ref) {
-              if (typeof ref === "function") ref(el);
-              else ref.current = el;
-            }
-            textAreaRef.current = el;
+          {...rest}
+          ref={(element) => {
+            localRef.current = element;
+            if (typeof forwardedRef === "function") forwardedRef(element);
+            else if (forwardedRef) forwardedRef.current = element;
           }}
           id={name}
           name={name}
           rows={row}
-          required={required}
-          disabled={disabled}
           value={value}
-          onChange={(e) => {
-            if (onChange) onChange(e);
-            setHeight("auto"); // Reset before recalculating
-            const newHeight = e.target.scrollHeight;
-            setHeight(`${Math.min(newHeight, maxHeight)}px`); // Limit height
+          onChange={(event) => {
+            resize(event.target);
+            onChange?.(event);
           }}
-          aria-invalid={error ? "true" : "false"}
+          aria-invalid={error || undefined}
           aria-describedby={errorId}
-          className={`relative w-full bg-transparent pl-2 py-2 outline-none text-base rounded
-            text-black
-            ${error ? "text-red-700" : ""}
-            ${className}`}
-          style={{
-            height,
-            maxHeight: `${maxHeight}px`,
-            overflowY: height === `${maxHeight}px` ? "auto" : "hidden",
-          }}
-          {...rest}
+          className={`relative w-full resize-none rounded bg-transparent py-2 pl-2 text-base text-black outline-none ${error ? "text-red-700" : ""} ${className ?? ""}`}
+          style={{ height, maxHeight, overflowY: height === `${maxHeight}px` ? "auto" : "hidden" }}
         />
-        {helperText && (
-          <p
-            id={errorId}
-            className={`ml-2 mt-[2px] text-xs w-auto whitespace-nowrap ${
-              error ? "text-custom_red" : "hidden"
-            } ${errorClassProp}`}
-          >
+        {helperText && error && (
+          <p id={errorId} className={`ml-2 mt-px whitespace-nowrap text-xs text-custom_red ${errorClassProp ?? ""}`}>
             {helperText.replace(/_/g, " ")}
           </p>
         )}
-      </div>
+      </FieldFrame>
     );
-  }
+  },
 );
-
 TextArea.displayName = "TextArea";

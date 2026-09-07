@@ -1,147 +1,79 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { io, Socket } from "socket.io-client";
-import LiveChart from "@components/LiveChart";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import axiosInstance from "@shared/utils/axios-instance";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@shared/store";
-import {
-  triggerErrorMsg,
-  triggerSuccessMsg,
-} from "@shared/store/thunks/response-thunk";
+import type { AppDispatch } from "@shared/store";
+import { triggerErrorMsg, triggerSuccessMsg } from "@shared/store/thunks/response-thunk";
+import LiveChart from "@components/LiveChart";
 
-let socket: Socket;
+interface Poll { sessionCode: string; question: string; options: string[]; votes: number[]; }
 
 export default function PollPage() {
-  const { code } = useParams() as { code: string };
-  const [poll, setPoll] = useState<{
-    sessionCode: string;
-    question: string;
-    options: string[];
-    votes: number[];
-  } | null>(null);
-
-  const [votes, setVotes] = useState<number[] | null>(null);
-  const [hasError, setHasError] = useState(false);
-  const [selectedVote, setSelectedVote] = useState<number | null>(null);
-
+  const { code = "" } = useParams();
   const dispatch = useDispatch<AppDispatch>();
-  const errorMsg = useSelector((state: RootState) => state.response.onErrorMsg);
-  const successMsg = useSelector((state: RootState) => state.response.onSuccessMsg);
+  const [poll, setPoll] = useState<Poll | null>(null);
+  const [votes, setVotes] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedVote, setSelectedVote] = useState<number | null>(null);
+  const [connected, setConnected] = useState(false);
+  const reconnectAttempt = useRef(0);
+  const reconnectTimer = useRef<number | undefined>(undefined);
+  const normalizedCode = code.toUpperCase();
 
-  // Fetch poll data on mount
   useEffect(() => {
-    if (!code) return;
+    setLoading(true);
+    axiosInstance.get(`/polls/${normalizedCode}`).then(({ data }) => { setPoll(data); setVotes(data.votes); }).catch((error) => dispatch(triggerErrorMsg(error.response?.data?.error?.message || "Poll could not be loaded."))).finally(() => setLoading(false));
+  }, [dispatch, normalizedCode]);
 
-    axiosInstance
-      .get(`/poll/${code}`, { withCredentials: true })
-      .then((res) => {
-        setPoll(res.data);
-        setVotes(res.data.votes);
-      })
-      .catch(() => {
-        setHasError(true);
-        dispatch(triggerErrorMsg("Poll not found or unauthorized."));
-      });
-  }, [code, dispatch]);
-
-  // Setup socket connection
   useEffect(() => {
     if (!poll) return;
-
-    socket = io(process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000", {
-      withCredentials: true,
-      transports: ["websocket"],
-    });
-
-    socket.emit("join", poll.sessionCode);
-
-    socket.on("voteUpdate", (newVotes: number[]) => {
-      setVotes(newVotes);
-    });
-
-    socket.on("voteError", (msg: string) => {
-      dispatch(triggerErrorMsg(msg));
-    });
-
-    socket.on("voteSuccess", (msg: string) => {
-      dispatch(triggerSuccessMsg(msg));
-    });
-
-    return () => {
-      socket.disconnect();
+    let disposed = false;
+    let socket: WebSocket | null = null;
+    const connect = () => {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      socket = new WebSocket(`${protocol}//${window.location.host}/api/polls/${poll.sessionCode}/live`);
+      socket.onopen = () => { reconnectAttempt.current = 0; setConnected(true); };
+      socket.onmessage = (event) => {
+        const message = JSON.parse(event.data) as { type?: string; votes?: number[] };
+        if ((message.type === "poll.snapshot" || message.type === "poll.votes") && Array.isArray(message.votes)) setVotes(message.votes);
+      };
+      socket.onclose = () => {
+        setConnected(false);
+        if (disposed) return;
+        const delay = Math.min(1000 * 2 ** reconnectAttempt.current++, 15000);
+        reconnectTimer.current = window.setTimeout(connect, delay);
+      };
     };
-  }, [poll, dispatch]);
+    connect();
+    return () => { disposed = true; if (reconnectTimer.current) window.clearTimeout(reconnectTimer.current); socket?.close(); };
+  }, [poll]);
 
-  // Cast vote with optimistic update
-  const castVote = (idx: number) => {
-    if (!poll || !votes || selectedVote !== null) return;
-
-    setSelectedVote(idx); // this only affects current session
-
-    setVotes((prevVotes) => {
-      if (!prevVotes) return prevVotes;
-      const updatedVotes = [...prevVotes];
-      updatedVotes[idx] += 1;
-      return updatedVotes;
-    });
-
-    socket.emit("castVote", {
-      code: poll.sessionCode,
-      optionIndex: idx,
-    });
+  const chartOptions = useMemo(() => poll?.options.map((label, index) => ({ label, votes: votes[index] || 0 })) || [], [poll, votes]);
+  const castVote = async (optionIndex: number) => {
+    try {
+      const { data } = await axiosInstance.post(`/polls/${normalizedCode}/votes`, { optionIndex });
+      setSelectedVote(optionIndex);
+      setVotes(data.votes);
+      dispatch(triggerSuccessMsg(data.message));
+    } catch (error: any) {
+      dispatch(triggerErrorMsg(error.response?.data?.error?.message || "Vote could not be submitted."));
+    }
   };
 
-  if (hasError) {
-    return (
-      <div className="text-center mt-8 text-red-500">
-        {errorMsg || "Something went wrong loading the poll."}
-      </div>
-    );
-  }
-
-  if (!poll || votes === null) {
-    return <div className="text-center mt-8">Loading poll...</div>;
-  }
-
+  if (loading) return <p>Loading poll…</p>;
+  if (!poll) return <p className="text-red-600">Poll not found.</p>;
   return (
-    <div className="w-full sm:w-[30rem] mx-auto my-8 flex flex-col gap-6">
-      <h2 className="text-2xl font-semibold text-center">{poll.question}</h2>
-
-      {errorMsg && <div className="text-center text-red-500 mt-2">{errorMsg}</div>}
-      {successMsg && (
-        <div className="text-center text-green-600 mt-2">{successMsg}</div>
-      )}
-
+    <section className="mx-auto my-8 flex w-full max-w-[30rem] flex-col gap-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold">{poll.question}</h1>
+        <p className={`mt-1 text-xs ${connected ? "text-green-700" : "text-amber-700"}`}>{connected ? "Live updates connected" : "Reconnecting live updates…"}</p>
+      </div>
       <div className="grid grid-cols-1 gap-2">
-        {poll.options.map((opt, i) => (
-          <button
-            key={i}
-            onClick={() => castVote(i)}
-            disabled={selectedVote !== null}
-            className={`custom_go p-2 rounded text-left ${
-              selectedVote === i
-                ? "bg-green-100 border border-green-500 text-green-800 font-medium"
-                : "bg-white border border-gray-300"
-            }`}
-          >
-            {opt}
-            {selectedVote === i && (
-              <span className="ml-2 text-green-700 font-medium">(You just voted this)</span>
-            )}
-          </button>
+        {poll.options.map((option, index) => (
+          <button key={index} type="button" onClick={() => void castVote(index)} disabled={selectedVote !== null} className={`custom_go rounded p-2 text-left disabled:cursor-not-allowed disabled:opacity-70 ${selectedVote === index ? "font-medium text-green-800" : ""}`}>{option}{selectedVote === index && <span className="ml-2">(your vote)</span>}</button>
         ))}
       </div>
-
-      <LiveChart
-        code={poll.sessionCode}
-        options={poll.options.map((opt, i) => ({
-          label: opt,
-          votes: votes[i],
-        }))}
-      />
-    </div>
+      <LiveChart options={chartOptions} />
+    </section>
   );
 }

@@ -1,90 +1,68 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { merge } from "lodash";
 
-// --- Types ---
-interface IUserState {
-  is_nav_auth_clicked: boolean;
-  is_otp_sent: boolean;
-  deactivated_at: string | null;
-  is_email_verified: boolean;
-  tokenBoolean: boolean;
+export interface AuthUser {
+  id: string;
+  googleSub: string;
+  email: string;
+  name: string | null;
+  deactivatedAt: string | null;
 }
 
-interface IUserActions {
-  handleAuthClick: (val: boolean) => void;
-  login: (payload: { is_email_verified: boolean; deactivated_at?: string | null, tokenBoolean: boolean }) => void;
+interface UserStore {
+  user: AuthUser | null;
+  loading: boolean;
+  initialized: boolean;
+  loadSession: () => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUserData: (payload: Partial<IUserState>) => void;
-  updateMode: (payload: Partial<IUserState>) => void;
 }
 
-type UserStore = IUserState & IUserActions;
+async function responseMessage(response: Response): Promise<string> {
+  const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+  return body?.error?.message || "Authentication failed.";
+}
 
-// --- Default state ---
-const defaultState: IUserState = {
-  is_nav_auth_clicked: false,
-  is_otp_sent: false,
-  deactivated_at: null,
-  is_email_verified: false,
-  tokenBoolean:false
-};
-
-// --- Store ---
-const isClient = typeof window !== "undefined";
-
-const useUserStore = create<UserStore>()(
-  persist(
-    (set, get) => ({
-      ...defaultState,
-
-      handleAuthClick: (val: boolean) => set({ is_nav_auth_clicked: val }),
-
-      login: ({ is_email_verified, deactivated_at, tokenBoolean }) => {
-        set({
-          is_email_verified,
-          deactivated_at: deactivated_at ?? null,
-          is_otp_sent: true,
-          is_nav_auth_clicked: is_email_verified ? false : get().is_nav_auth_clicked,
-          tokenBoolean,
-        });
-      },
-
-      logout: async () => {
-        try {
-          const res = await fetch("/api/logout", {
-            method: "POST",
-            credentials: "include",
-          });
-
-          if (res.ok) {
-            set({ ...defaultState, is_email_verified: true });
-            setTimeout(() => {
-              window.location.reload();
-            }, 150);
-          } else {
-            console.error("Logout failed");
-          }
-        } catch (err) {
-          console.error("Logout error", err);
-        }
-      },
-
-      updateUserData: (payload: Partial<IUserState>) => {
-        const newState = merge({}, get(), payload);
-        set(newState);
-      },
-
-      updateMode: (payload: Partial<IUserState>) => {
-        set(payload as IUserState);
-      },
-    }),
-    {
-      name: "app_user_state",
-      storage: isClient ? createJSONStorage(() => localStorage) : undefined,
-      skipHydration: !isClient,
+const useUserStore = create<UserStore>((set) => ({
+  user: null,
+  loading: false,
+  initialized: false,
+  loadSession: async () => {
+    set({ loading: true });
+    try {
+      const response = await fetch("/api/session", { credentials: "include" });
+      const data = (await response.json()) as { authenticated: boolean; user: AuthUser | null };
+      set({ user: data.authenticated ? data.user : null, initialized: true });
+    } finally {
+      set({ loading: false, initialized: true });
     }
-  )
-);
+  },
+  loginWithGoogle: async (credential) => {
+    set({ loading: true });
+    try {
+      const csrfResponse = await fetch("/api/auth/csrf", { credentials: "include" });
+      const { csrfToken } = (await csrfResponse.json()) as { csrfToken: string };
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential, csrfToken }),
+      });
+      if (!response.ok) throw new Error(await responseMessage(response));
+      const { user } = (await response.json()) as { user: AuthUser };
+      set({ user });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  logout: async () => {
+    set({ loading: true });
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      set({ user: null });
+    } finally {
+      set({ loading: false });
+    }
+  },
+}));
 
 export default useUserStore;

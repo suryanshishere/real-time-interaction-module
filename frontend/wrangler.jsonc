@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "pollbuzz",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-22",
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pollbuzz-db",
+      "database_id": "PUT_D1_DATABASE_ID_HERE",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "POLL_ROOMS", "class_name": "PollRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PollRoom"] }],
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}
