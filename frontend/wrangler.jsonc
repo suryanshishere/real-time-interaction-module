@@ -3,6 +3,8 @@
   "name": "pollbuzz",
   "main": "./worker/index.ts",
   "compatibility_date": "2026-08-22",
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
@@ -11,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "pollbuzz-db",
-      "database_id": "PUT_D1_DATABASE_ID_HERE",
+      "database_id": "7d2c0b8a-c9d9-467d-af28-3eb30e1e265f",
       "migrations_dir": "migrations"
     }
   ],

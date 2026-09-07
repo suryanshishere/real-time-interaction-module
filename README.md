@@ -2,6 +2,8 @@
 
 PollBuzz is a real-time polling app deployed as one Cloudflare Worker. The same deployment serves the React UI, Hono API, D1 database access, and Durable Object WebSocket rooms.
 
+Production URL: `https://pollbuzz.governmentninja.workers.dev`
+
 Authentication is Google-only. Password login, signup, OTP/email verification, password reset, SMTP, the old Express/Socket.IO server, and the separate Vercel/Render deployments have been removed.
 
 ## Architecture
@@ -41,7 +43,7 @@ Use one Google OAuth 2.0 **Web application** client ID for both browser and Work
 
 | Setting | Local location | Production location | Purpose |
 | --- | --- | --- | --- |
-| `VITE_GOOGLE_CLIENT_ID` | `frontend/.env.local` | Cloudflare Workers Builds > Settings > Build variables | Public client ID embedded by Vite |
+| `VITE_GOOGLE_CLIENT_ID` | `frontend/.env.local` | Committed in `frontend/.env.production`; a build variable may override it | Public client ID embedded by Vite |
 | `GOOGLE_CLIENT_ID` | `frontend/.dev.vars` | Worker > Settings > Variables and Secrets, preferably encrypted | Expected audience when verifying Google ID tokens |
 | `SESSION_SECRET` | `frontend/.dev.vars` | Worker > Settings > Variables and Secrets, encrypted | Signs application session cookies |
 | `MONGO_URI` | Temporary shell environment only | Never add to Cloudflare | Source connection used only by the one-time exporter |
@@ -81,7 +83,7 @@ npx wrangler login
 npx wrangler d1 create pollbuzz-db
 ```
 
-Copy the returned D1 UUID into `database_id` in `frontend/wrangler.jsonc`, replacing `PUT_D1_DATABASE_ID_HERE`. Then run:
+Copy the returned D1 UUID into `database_id` in `frontend/wrangler.jsonc`. The current production database is already configured. Then run:
 
 ```bash
 npm run db:migrate:remote
@@ -97,7 +99,7 @@ For automatic deploys from GitHub, connect the repository in Cloudflare Workers 
 - Root directory: `frontend`
 - Build command: `npm ci && npm run build`
 - Deploy command: `npx wrangler deploy --config dist/pollbuzz/wrangler.json`
-- Build variable: `VITE_GOOGLE_CLIENT_ID`
+- Optional build-variable override: `VITE_GOOGLE_CLIENT_ID`
 - Node version: 22.12 or newer
 
 Set `GOOGLE_CLIENT_ID` and `SESSION_SECRET` as runtime Worker secrets, not build variables.
