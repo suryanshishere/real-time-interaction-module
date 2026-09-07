@@ -2,7 +2,7 @@
 
 PollBuzz is a real-time polling app deployed as one Cloudflare Worker. The same deployment serves the React UI, Hono API, D1 database access, and Durable Object WebSocket rooms.
 
-Production URL: `https://pollbuzz.governmentninja.workers.dev`
+Production URL: `https://pollbuzz.suryansh.lol`
 
 Authentication is Google-only. Password login, signup, OTP/email verification, password reset, SMTP, the old Express/Socket.IO server, and the separate Vercel/Render deployments have been removed.
 
@@ -69,7 +69,7 @@ openssl rand -base64 32
 2. Configure the OAuth consent screen.
 3. Create an OAuth client with application type **Web application**.
 4. Add `http://localhost:5173` under Authorized JavaScript origins.
-5. After the first Cloudflare deploy, add `https://pollbuzz.<your-workers-subdomain>.workers.dev` as another Authorized JavaScript origin.
+5. Add `https://pollbuzz.suryansh.lol` as another Authorized JavaScript origin.
 6. Put the resulting `...apps.googleusercontent.com` value in both Google client ID settings in the table above.
 
 This app uses the Google credential callback, so an Authorized redirect URI is not required.
@@ -92,7 +92,7 @@ npx wrangler secret put SESSION_SECRET
 npm run deploy
 ```
 
-`npm run deploy` builds the browser and Worker together and deploys the generated Vite Worker configuration, including all assets and bindings. The result is a single `workers.dev` site.
+`npm run deploy` builds the browser and Worker together and deploys the generated Vite Worker configuration, including all assets and bindings. Production is routed through the configured custom domain.
 
 For automatic deploys from GitHub, connect the repository in Cloudflare Workers Builds and use:
 
@@ -136,8 +136,8 @@ The confirmation variable prevents an accidental production import. Run the impo
 
 Before retiring the old deployment, verify:
 
-1. `https://pollbuzz.<your-workers-subdomain>.workers.dev/api/health` returns `{"status":"ok"}`.
-2. Google login and logout work on the final `workers.dev` origin.
+1. `https://pollbuzz.suryansh.lol/api/health` returns `{"status":"ok"}`.
+2. Google login and logout work on the final custom-domain origin.
 3. A migrated owner can see existing polls.
 4. Existing session codes open and show their historical totals.
 5. A signed-in user can create a poll and vote once.
