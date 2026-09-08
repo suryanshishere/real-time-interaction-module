@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Seo from "@shared/utils/Seo";
 
 const letters = [
   ["p", "text-red-500"], ["o", "text-orange-500"], ["l", "text-yellow-500"],
@@ -10,8 +11,13 @@ const animations = ["animate-jump-sm", "animate-stretch-sm", "animate-glow-sm", 
 export default function Home() {
   return (
     <div className="flex flex-col justify-center sm:items-start">
+      <Seo
+        title="PollBuzz — Create & Share Live Polls in Real Time"
+        description="PollBuzz is a free real-time polling tool. Create a poll, share a code, and watch live results update instantly — perfect for classrooms, teams, meetings, and events."
+        path="/"
+      />
       <div className="flex items-center justify-center gap-3">
-        <h1 className="flex gap-4 font-mono text-3xl font-extrabold">
+        <h1 aria-label="PollBuzz" className="flex gap-4 font-mono text-3xl font-extrabold">
           {letters.map(([letter, color], index) => (
             <span key={index} className={`${color} ${animations[index % animations.length]}`}>{letter}</span>
           ))}

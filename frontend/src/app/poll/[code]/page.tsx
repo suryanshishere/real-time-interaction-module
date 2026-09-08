@@ -5,6 +5,7 @@ import axiosInstance from "@shared/utils/axios-instance";
 import type { AppDispatch } from "@shared/store";
 import { triggerErrorMsg, triggerSuccessMsg } from "@shared/store/thunks/response-thunk";
 import LiveChart from "@components/LiveChart";
+import Seo from "@shared/utils/Seo";
 
 interface Poll { sessionCode: string; question: string; options: string[]; votes: number[]; }
 
@@ -60,10 +61,20 @@ export default function PollPage() {
     }
   };
 
-  if (loading) return <p>Loading poll…</p>;
-  if (!poll) return <p className="text-red-600">Poll not found.</p>;
+  const seo = (
+    <Seo
+      title={poll ? `${poll.question} — PollBuzz` : "Poll — PollBuzz"}
+      description="Vote on this live PollBuzz poll and watch results update in real time."
+      path={`/poll/${normalizedCode}`}
+      noindex
+    />
+  );
+
+  if (loading) return <>{seo}<p>Loading poll…</p></>;
+  if (!poll) return <>{seo}<p className="text-red-600">Poll not found.</p></>;
   return (
     <section className="mx-auto my-8 flex w-full max-w-[30rem] flex-col gap-6">
+      {seo}
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{poll.question}</h1>
         <p className={`mt-1 text-xs ${connected ? "text-green-700" : "text-amber-700"}`}>{connected ? "Live updates connected" : "Reconnecting live updates…"}</p>

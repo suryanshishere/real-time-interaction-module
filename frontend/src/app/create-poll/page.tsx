@@ -11,6 +11,7 @@ import type { AppDispatch } from "@shared/store";
 import { triggerErrorMsg, triggerSuccessMsg } from "@shared/store/thunks/response-thunk";
 import LiveChart from "@components/LiveChart";
 import Timer from "@components/Timer";
+import Seo from "@shared/utils/Seo";
 
 interface PollResponse { sessionCode: string; options: string[]; }
 
@@ -29,6 +30,11 @@ export default function CreatePoll() {
 
   return (
     <section className="w-full max-w-[30rem] space-y-6 rounded-xl p-4 shadow">
+      <Seo
+        title="Create a Poll — PollBuzz"
+        description="Create a free live poll in seconds. Add your question and up to 7 options, then share the code and watch real-time results roll in."
+        path="/create-poll"
+      />
       <h1 className="text-2xl font-bold">Create a Poll</h1>
       <TextArea name="question" value={question} maxLength={500} onChange={(event) => setQuestion(event.target.value)} placeholder="Enter your question" className="w-full" />
       {options.map((option, index) => (

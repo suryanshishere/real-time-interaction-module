@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@shared/ui/Input";
+import Seo from "@shared/utils/Seo";
 
 export default function JoinSession() {
   const [code, setCode] = useState("");
@@ -8,6 +9,11 @@ export default function JoinSession() {
   const normalized = code.trim().toUpperCase();
   return (
     <div className="space-y-4">
+      <Seo
+        title="Join a Poll — Vote on PollBuzz"
+        description="Enter a session code to join a live poll and cast your vote. See real-time results update instantly as others vote."
+        path="/vote"
+      />
       <div className="flex flex-col items-center justify-center gap-4">
         <img src="/assets/collaboration.png" alt="People collaborating" width={200} height={150} />
         <div className="flex items-center justify-center gap-4">

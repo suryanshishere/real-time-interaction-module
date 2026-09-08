@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /$
+Allow: /create-poll
+Allow: /vote
+Disallow: /poll/
+Disallow: /api/
+
+Sitemap: https://pollbuzz.suryansh.lol/sitemap.xml
